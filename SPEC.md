@@ -1,8 +1,9 @@
 # Specification
 
-Status: ACTIVE
+Status: COMPLETE
 Context: PERSONAL
 Environment: LAB
+Result: PASS
 
 ## Objective
 
@@ -10,64 +11,54 @@ Prove the smallest useful Amazon Bedrock AgentCore Runtime lifecycle with **dire
 
 ## Outcome
 
-One cohesive Issue #13 PR covering:
+Issue #13 proved:
 
-`minimal HTTP app -> ZIP -> dedicated S3 artifact -> AgentCore Runtime -> IAM InvokeAgentRuntime -> AWS Core verification -> teardown`.
+`minimal HTTP app -> standard ZIP -> dedicated S3 artifact -> AgentCore Runtime -> IAM InvokeAgentRuntime -> AWS Core verification -> teardown`.
 
-## Authorized
+## Authorized Scope Used
 
-Amit activated the next LAB milestone with `go` on 2026-09-12. Issue #13 defines the bounded mutation scope. Within this PERSONAL/LAB scope ChatGPT may:
+Amit activated the LAB milestone with `go` on 2026-09-12. The experiment used only bounded resources owned by Issue #13:
 
-- create/delete one dedicated S3 artifact bucket/object for the experiment;
-- create/delete one dedicated AgentCore Runtime execution IAM role and inline policy;
-- create/invoke/read/delete exactly one AgentCore Runtime in the intended LAB region;
-- inspect the experiment Runtime's logs/state;
-- stop the experiment runtime session when applicable;
-- perform only experiment-owned cleanup.
+- one temporary S3 artifact bucket/object;
+- one temporary AgentCore Runtime execution IAM role and inline policy;
+- one temporary AgentCore Runtime;
+- one temporary branch-scoped OIDC upload role needed only to produce a standards-generated ZIP after the controller sandbox could not;
+- one harmless Runtime invocation and associated Runtime logs.
 
-## MUST
+All experiment-owned cloud resources and log groups were deleted after proof.
 
-- Re-verify AWS caller identity and intended region before mutation.
-- Use direct-code ZIP deployment; no ECR or CodeBuild for this proof.
-- Use IAM/SigV4 inbound authentication; no Cognito/JWT yet.
-- Use a deterministic HTTP app with `POST /invocations` and `GET /ping` on port 8080.
-- Avoid Bedrock model invocation in this milestone.
-- Keep execution-role permissions to the minimum required Runtime/logging/telemetry set; do not add unrelated service access.
-- Independently verify Runtime state and invocation through AWS Core.
-- Tear down experiment-owned Runtime, artifact bucket/object, and execution role after proof.
-- Keep committed evidence public-safe; do not commit account IDs, principal ARNs, runtime ARNs, or credentials.
+## Constraints Satisfied
 
-## MUST NOT
+- AWS caller identity and intended region were re-verified before mutation.
+- Direct-code ZIP deployment was used; no ECR or CodeBuild.
+- IAM/SigV4 inbound authentication was used; no Cognito/JWT.
+- The deterministic HTTP app implemented `POST /invocations` and `GET /ping` on port 8080.
+- No Bedrock model invocation was used.
+- Runtime execution-role access was limited to Runtime logging/telemetry plus exact artifact read access; no unrelated service access was added.
+- Runtime state, invocation, and logs were independently verified through AWS Core.
+- No account IDs, principal ARNs, Runtime ARNs, credentials, or generated resource IDs are retained in the final repository files.
+- Existing GitHub OIDC Terraform role, Terraform state bucket, and drift-proof SSM parameter were not modified.
 
-- Modify or widen the existing GitHub OIDC Terraform role.
-- Modify the Terraform state bucket or drift-proof SSM parameter except normal read-only verification if needed.
-- Create Cognito, CloudFront, frontend hosting, Gateway, Policy, VPC/networking, ECR, CodeBuild, databases, or static AWS credentials.
-- Reuse unrelated IAM roles merely because they already exist.
-- Retain experiment cloud resources after acceptance unless Amit explicitly changes the retention decision.
+## Verification Result
 
-## Milestones
+- AgentCore Runtime resource type was available in the LAB region: PASS.
+- Pre-deployment readback found zero conflicting Runtimes: PASS.
+- Unit tests for direct/wrapped prompt payloads and invalid input: PASS.
+- Runtime reached `READY`: PASS.
+- `InvokeAgentRuntime` returned HTTP 200 and the deterministic `AgentCore Runtime OK` response: PASS.
+- Provider readback confirmed direct-code Python 3.13, HTTP protocol, and no custom authorizer: PASS.
+- Runtime logs confirmed the server started, the invocation returned 200, and `/ping` health checks returned 200: PASS.
+- Runtime session stop: PASS.
+- Runtime/artifact bucket/execution role/temporary package role/log-group cleanup: PASS.
+- Final readback found zero experiment Runtimes and no retained Issue #13 resources: PASS.
 
-1. Rebaseline repository docs and record the upstream source ledger.
-2. Implement/test a dependency-free AgentCore HTTP app and ZIP packager.
-3. Create dedicated artifact storage and a dedicated Runtime execution role.
-4. Deploy one direct-code Runtime and invoke it once through IAM/SigV4.
-5. Independently verify provider state/log evidence and record sanitized results.
-6. Tear down experiment-owned AWS resources and return KEEP/DROP decisions.
+## Decisions
 
-## Verification
+- AgentCore Runtime: **KEEP**.
+- Direct-code deployment: **KEEP** for small Python experiments.
+- IAM/SigV4 inbound auth: **KEEP** as the default AWS-internal/lab path.
+- Full sample Cognito/frontend/ECR/CodeBuild architecture: **DEFER** until a use case requires it.
 
-- `AWS::BedrockAgentCore::Runtime` is available in the intended region.
-- Pre-deployment readback shows no conflicting experiment Runtime.
-- Unit tests pass for direct/wrapped prompt payloads and invalid input.
-- Runtime reaches a ready state.
-- `InvokeAgentRuntime` returns the deterministic `AgentCore Runtime OK` response.
-- Provider readback confirms IAM auth/direct-code Runtime and no skipped full-stack components.
-- Cleanup readback confirms the experiment Runtime, artifact bucket, and execution role are gone.
+## Next Milestone
 
-## Stop Gates
-
-Stop if caller identity/region differs from the intended PERSONAL/LAB target, direct-code deployment requires broad/unclear permissions, deployment requires unrelated public/network resources, or experiment-resource ownership/cleanup becomes ambiguous.
-
-## Acceptance
-
-Return `PASS | PARTIAL | BLOCKED` with one successful deterministic AgentCore Runtime invocation, independent verification, clean teardown, no model/Cognito/ECR/CodeBuild dependency, and one recommended next milestone.
+AgentCore Gateway + Policy ALLOW/DENY using one harmless read-only tool, with the critical proof that a `DENY` decision results in **zero provider execution**.
