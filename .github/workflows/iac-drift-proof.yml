@@ -17,11 +17,11 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  AWS_REGION: ap-southeast-1
-  AWS_ROLE_ARN: arn:aws:iam::063884340510:role/github-actions-lab1-agent-iac
-  TF_STATE_BUCKET: lab1-agent-tfstate-20260912-7c4f2a
-  TF_STATE_KEY: lab1-agent/issue-5/terraform.tfstate
-  TF_PARAMETER_NAME: /lab1-agent/oidc-drift-proof
+  AWS_REGION: ${{ vars.AWS_REGION }}
+  AWS_ROLE_ARN: ${{ vars.AWS_OIDC_ROLE_ARN }}
+  TF_STATE_BUCKET: ${{ vars.TF_STATE_BUCKET }}
+  TF_STATE_KEY: ${{ vars.TF_STATE_KEY }}
+  TF_PARAMETER_NAME: ${{ vars.TF_PARAMETER_NAME }}
   TF_IN_AUTOMATION: "true"
 
 jobs:
@@ -31,25 +31,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Show non-secret OIDC claims
+      - name: Validate repository variables
         shell: bash
         run: |
           set -euo pipefail
-          response=$(curl -fsSL \
-            -H "Authorization: Bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" \
-            "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=sts.amazonaws.com")
-          token=$(printf '%s' "$response" | jq -r '.value')
-          TOKEN="$token" python3 - <<'PY'
-          import base64, json, os
-          token = os.environ["TOKEN"]
-          payload = token.split('.')[1]
-          payload += '=' * (-len(payload) % 4)
-          claims = json.loads(base64.urlsafe_b64decode(payload.encode()))
-          print(f"OIDC aud={claims.get('aud')}")
-          print(f"OIDC sub={claims.get('sub')}")
-          print(f"OIDC repository={claims.get('repository')}")
-          print(f"OIDC ref={claims.get('ref')}")
-          PY
+          for name in AWS_REGION AWS_ROLE_ARN TF_STATE_BUCKET TF_STATE_KEY TF_PARAMETER_NAME; do
+            if [ -z "${!name:-}" ]; then
+              echo "Required repository variable is missing for ${name}" >&2
+              exit 1
+            fi
+          done
 
       - name: Configure AWS credentials with OIDC
         uses: aws-actions/configure-aws-credentials@v4
