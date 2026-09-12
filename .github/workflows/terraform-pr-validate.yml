@@ -15,10 +15,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
 
       - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
+        uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
         with:
           terraform_version: "1.10.5"
 
@@ -26,10 +28,7 @@ jobs:
         run: terraform -chdir=infra fmt -check
 
       - name: Terraform init without backend
-        run: terraform -chdir=infra init -backend=false -input=false
+        run: terraform -chdir=infra init -backend=false -input=false -lockfile=readonly
 
       - name: Terraform validate
         run: terraform -chdir=infra validate
-
-      - name: Show generated provider lockfile for bootstrap
-        run: cat infra/.terraform.lock.hcl
