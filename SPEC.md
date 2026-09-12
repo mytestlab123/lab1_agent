@@ -1,61 +1,62 @@
 # Specification
 
-Status: DRAFT
-Context: `<PERSONAL | WORK>`
-Environment: `<LOCAL | LAB | DEV | NONPROD | PROD>`
+Status: ACTIVE
+Context: PERSONAL
+Environment: LAB
 
 ## Objective
 
-Describe the problem and intended result.
+Prove that a fresh ChatGPT session can safely reuse AWS operating knowledge from `mytestlab123/chatgpt-aws` without relying on another chat's memory.
 
 ## Outcome
 
-Describe the usable milestone/release package to deliver.
+One reviewable PR that initializes this consumer repository, verifies fresh-session GitHub/AWS Core access with read-only AWS calls, records public-safe evidence, and defines one next experiment without executing it.
 
 ## Authorized
 
-List the actions that may proceed without repeated approval while this SPEC is ACTIVE and the owning Issue/instruction remains in scope.
-
-For `PERSONAL` + `LAB`/`DEV`, explicitly authorized deterministic work may include repo-owned implementation, deployment, cloud resource creation/mutation, validation, reset, and cleanup without asking resource-by-resource.
-
-For `WORK` and especially `PROD`, grant only the bounded authority actually intended. Read-only investigation may be standing authority when explicitly stated; mutation requires proportionate approval in this SPEC or the current user instruction.
-
-Repository visibility is not an authority signal. Private does not mean personal; public does not mean unrestricted.
+- Read `mytestlab123/chatgpt-aws` as the reusable AWS knowledge source.
+- Read/write this repository for Issue #3 documentation and initialization.
+- Use AWS Core for STS and representative read-only AWS API calls in the personal LAB account.
+- Inspect IAM/OIDC trust configuration read-only.
 
 ## MUST
 
-- List required behavior and acceptance-critical invariants.
+- Re-verify AWS identity in this session.
+- Verify the intended LAB region.
+- Verify GitHub access and repository state.
+- Keep exact account/principal/role/resource identifiers out of committed public-facing evidence.
+- Record whether knowledge reuse succeeds without Amit repeating prior setup.
+- Keep the next persistent-IaC/drift experiment as design only in this PR.
 
 ## MUST NOT
 
-- List hard scope, security, data, publication, production, destructive, or cost boundaries.
+- Create, update, delete, deploy, or destroy AWS resources.
+- Modify IAM/OIDC trust or permissions.
+- Add AWS access keys or other long-lived credentials.
+- Commit credentials, tokens, authentication state, raw AWS inventory, exact account IDs, principal ARNs, repo-external role ARNs, or sensitive resource names.
+- Assume a GitHub OIDC role created for another repository is reusable here.
 
-## Phases / Milestones
+## Milestones
 
-Group related work into a cohesive useful package, normally several tightly coupled tasks or 2-3 phases sharing one outcome and trust boundary.
-
-- Phase 1: `<outcome>`
-- Phase 2: `<outcome>`
-- Phase 3: `<outcome>`
-
-Do not stop between routine approved phases merely to request permission again.
+1. Reconcile repository truth and initialize the lab.
+2. Fresh AWS Core identity/tool verification.
+3. GitHub access/state verification.
+4. Representative STS/EC2/S3/IAM read proof.
+5. Knowledge-reuse and publication-boundary proof.
+6. Recommend one persistent IaC + OIDC + drift experiment; do not execute it.
 
 ## Verification
 
-State the smallest meaningful proof: focused tests/checks, runtime/provider readback, user-path validation, and cleanup/retention state when applicable.
+- Fresh STS `GetCallerIdentity` succeeds.
+- Read-only EC2, S3, and IAM/OIDC calls succeed.
+- Current repository metadata confirms private + unarchived state.
+- Existing OIDC proof role trust is inspected read-only and shown to be repository-bound.
+- PR contains only public-safe evidence.
 
 ## Stop Gates
 
-Stop and ask only when required by a real boundary, for example:
-
-- target repository/account/environment does not match the approved scope;
-- work would enter PROD or another higher-risk environment without authority;
-- destructive/non-recoverable data loss, credential/secret mutation, public exposure, or material cost is not explicitly approved;
-- implementation would materially widen architecture, security/trust boundary, or external integration beyond the milestone;
-- required validation fails or current state is ambiguous/unsafe.
-
-Technical failure remains a blocker even when mutation is otherwise authorized.
+Stop if the AWS account/environment does not match the intended personal LAB, if GitHub repository identity is wrong, if a requested step would mutate AWS/IAM, or if verification cannot be completed safely.
 
 ## Acceptance
 
-List concise conditions that make the whole milestone reviewable and complete.
+Result is `PASS`, `PARTIAL`, or `BLOCKED`; all successful checks are documented without exposing environment-specific identifiers; no AWS mutation occurs.

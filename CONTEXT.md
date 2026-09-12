@@ -1,32 +1,30 @@
 # Context
 
-Status: NOT_INITIALIZED
+Status: ACTIVE
 
 ## Project Identity
 
-- Project: `<project name>`
-- Primary Repository: `<owner/repo>`
-- Primary Directory: `<optional local path>`
-- Authorized Related Repositories: `<optional list>`
-
-Optional session metadata may be recorded when useful, but it is coordination context only:
-
-- Codex Thread: `<optional>`
-- Codex Session: `<optional UUID>`
-- ChatGPT Project/Chat: `<optional>`
-- ChatGPT Session/URL: `<optional>`
+- Project: ChatGPT AWS Consumer Lab
+- Primary Repository: `mytestlab123/lab1_agent`
+- Authorized Related Repository: `mytestlab123/chatgpt-aws` (read as reusable AWS knowledge source)
+- Context: PERSONAL
+- Environment: LAB
 
 ## Current Truth
 
-- Repository created from `repo-starter`.
-- Initialization interview not yet completed.
+- This repository is private and unarchived.
+- This repository is the consumer under test; it must not depend on previous-chat memory.
+- Reusable AWS Core/MCP + GitHub/OIDC knowledge lives in private `mytestlab123/chatgpt-aws`.
+- Fresh-session AWS identity/tool access must be verified independently before any mutation.
+- Current consumer proof uses read-only AWS calls only.
+- Exact AWS account/principal/role/resource identifiers are intentionally not duplicated here.
 
 ## Active Work
 
-- Issue: `<none>`
-- PR: `<none>`
-- Current milestone: `<none>`
+- Issue: #3 — cross-session AWS MCP consumer proof
+- Branch: `consumer-proof-public-safe`
+- Current milestone: verify fresh-session knowledge reuse and produce public-safe evidence.
 
 ## Next Action
 
-- Run the short `INIT.md` interview, then update project identity, `SPEC.md`, `ENV.md`, README purpose, and the first useful milestone.
+- Complete Issue #3 in one PR: fresh AWS Core verification, representative read-only AWS checks, GitHub access proof, public-safety boundary, and one next experiment recommendation.

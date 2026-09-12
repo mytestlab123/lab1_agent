@@ -4,71 +4,55 @@ Purpose: let a separate ChatGPT session working on this repository reuse the pro
 
 ## Source of truth
 
-The detailed, environment-specific knowledge lives in the **private** repository:
+Detailed environment-specific knowledge lives in private `mytestlab123/chatgpt-aws`:
 
-- `mytestlab123/chatgpt-aws/docs/PORTABLE_AWS_MCP_KNOWLEDGE.md`
-- `mytestlab123/chatgpt-aws/docs/SESSION_BOOTSTRAP.md`
-- `mytestlab123/chatgpt-aws/docs/EXPERIMENTS.md`
+- `docs/PORTABLE_AWS_MCP_KNOWLEDGE.md`
+- `docs/SESSION_BOOTSTRAP.md`
+- `docs/EXPERIMENTS.md`
 
 A ChatGPT session with the connected GitHub app should read those files directly before AWS work here.
 
-## Start a new ChatGPT session like this
+## New-session procedure
 
-> Use the connected **GitHub** and **AWS Core** apps. Do not rely on memory from another chat.
->
-> 1. Read `mytestlab123/chatgpt-aws/docs/PORTABLE_AWS_MCP_KNOWLEDGE.md`, `docs/SESSION_BOOTSTRAP.md`, and `docs/EXPERIMENTS.md`.
-> 2. Read this repository's `AGENTS.md`, `CONTEXT.md`, `SPEC.md`, `ENV.md`, and active Issue/PR.
-> 3. Verify AWS Core in this session with STS `GetCallerIdentity` before any AWS mutation.
-> 4. Use direct AWS MCP for discovery, troubleshooting, live readback, verification, and small reversible operations.
-> 5. Use GitHub + IaC + OIDC for durable infrastructure.
-> 6. Do not assume an OIDC role created for another repository can be reused here. Verify or create repo-specific trust first.
-> 7. After any cloud mutation, verify actual AWS state and document evidence back in GitHub.
+1. Read the three private source-of-truth files above.
+2. Read this repository's `AGENTS.md`, `CONTEXT.md`, `SPEC.md`, `ENV.md`, and active Issue/PR.
+3. Verify AWS Core in this session with STS `GetCallerIdentity` before any AWS mutation.
+4. Confirm the intended PERSONAL/LAB environment and `ap-southeast-1` region.
+5. Use direct AWS MCP for discovery, troubleshooting, live provider readback, independent verification, and bounded reversible operations when authorized.
+6. Use GitHub + IaC + OIDC for durable infrastructure.
+7. Never assume an OIDC role created for another repository can be reused here; verify repository-specific trust first.
+8. After any future cloud mutation, verify actual provider state and write public-safe evidence back to GitHub.
 
-## Important portability rule
+## Portability rule
 
 **Git carries knowledge, not authentication.**
 
-A new ChatGPT session must separately verify:
+Each new session must separately verify:
 
-- AWS Core is connected/authenticated;
-- the active AWS account and principal;
-- GitHub can read/write the required repositories;
-- the current AWS/GitHub tool surface exposed in that session;
-- the active project Issue/PR and repository authority.
+- AWS Core authentication;
+- active AWS account/principal;
+- GitHub access;
+- AWS/GitHub tool surface exposed in that session;
+- current repository Issue/PR authority;
+- current live AWS resource state when relevant.
 
-Do not treat the existence of these docs as proof that authentication or permissions are still valid.
+## Execution paths
 
-## Execution-path rule
+Use **direct AWS MCP** primarily for inspection, troubleshooting, logs, live readback, independent verification, and small reversible operations when authorized.
 
-Use **direct AWS MCP** when the main job is:
-
-- inspect inventory/configuration;
-- troubleshoot;
-- query logs or CloudTrail;
-- perform live provider readback;
-- make a bounded, reversible, low-cost operational change;
-- independently verify an IaC deployment.
-
-Use **GitHub + IaC + OIDC** when infrastructure should be reproducible, reviewable, rebuildable, or cleanly destroyed later.
+Use **GitHub + IaC + OIDC** for persistent infrastructure that should be reviewable, reproducible, rebuildable, or destroyable from code.
 
 Preferred durable loop:
 
 `ChatGPT -> GitHub/IaC -> GitHub Actions/OIDC -> AWS -> AWS MCP verification`
 
-## Repository-visibility note
+## Publication boundary
 
-This repository is **public** at the time this bootstrap was added.
+This repository is currently private, but committed content should remain public-safe so a later public transition is simpler.
 
-For now:
+- Do not copy exact AWS account IDs, caller/principal ARNs, repo-external role ARNs, raw inventory, or sensitive resource names here.
+- Do not store AWS access keys for GitHub Actions; prefer OIDC.
+- Future workflow configuration should use GitHub Variables for ordinary environment-specific values and Secrets only for genuine secrets or values Amit intentionally wants hidden.
+- Detailed environment truth may stay in private `mytestlab123/chatgpt-aws` when no workflow needs it.
 
-- keep account IDs, IAM principal ARNs, AWS role ARNs, and other environment-specific details in private `mytestlab123/chatgpt-aws`;
-- do not add mutation-capable AWS OIDC deployment workflows here by default while the repository remains public;
-- if this repository is made private for the lab, a later milestone can create a repo-specific scoped OIDC role/workflow and then verify it end-to-end.
-
-Before eventually making an AWS-enabled repository public, review workflow triggers, IAM trust, permissions, committed history, and environment details.
-
-## What this repository should not duplicate
-
-Do not copy the entire AWS knowledge base into this repo. Keep the reusable AWS/MCP facts centralized in `mytestlab123/chatgpt-aws` and keep only project-specific decisions/evidence here.
-
-That avoids drift between ChatGPT sessions and repositories.
+See `docs/PUBLICATION_BOUNDARY.md`.
