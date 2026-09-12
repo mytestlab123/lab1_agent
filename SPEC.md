@@ -1,64 +1,78 @@
 # Specification
 
-Status: COMPLETE
+Status: ACTIVE
 Context: PERSONAL
 Environment: LAB
-Result: PASS
 
 ## Objective
 
-Prove the smallest useful Amazon Bedrock AgentCore Runtime lifecycle with **direct-code Python deployment + IAM/SigV4 invocation**, while keeping the existing Terraform/OIDC proof unchanged.
+Prove the smallest useful Amazon Bedrock AgentCore **Gateway + Policy** governance path with one harmless Lambda-backed MCP tool, and prove that a policy DENY prevents provider execution.
 
 ## Outcome
 
-Issue #13 proved:
+One cohesive Issue #15 PR covering:
 
-`minimal HTTP app -> standard ZIP -> dedicated S3 artifact -> AgentCore Runtime -> IAM InvokeAgentRuntime -> AWS Core verification -> teardown`.
+`IAM caller -> AgentCore Gateway (MCP/AWS_IAM) -> Policy Engine (ENFORCE) -> ALLOW or DENY -> Lambda provider -> independent execution-count verification -> teardown`.
 
-## Authorized Scope Used
+## Authorized
 
-Amit activated the LAB milestone with `go` on 2026-09-12. The experiment used only bounded resources owned by Issue #13:
+Amit activated this LAB milestone with `go` on 2026-09-12. Issue #15 defines the bounded mutation scope. Within this PERSONAL/LAB scope ChatGPT may:
 
-- one temporary S3 artifact bucket/object;
-- one temporary AgentCore Runtime execution IAM role and inline policy;
-- one temporary AgentCore Runtime;
-- one temporary branch-scoped OIDC upload role needed only to produce a standards-generated ZIP after the controller sandbox could not;
-- one harmless Runtime invocation and associated Runtime logs.
+- create/delete one dedicated Lambda function and its execution role;
+- create/delete one dedicated AgentCore Gateway service role;
+- create/delete one AgentCore Gateway and one Lambda target/tool;
+- create/delete one AgentCore Policy Engine and bounded Cedar policies;
+- create/delete one temporary GitHub OIDC caller role scoped only to the Issue #15 branch for signed Gateway test calls;
+- invoke the harmless tool for ALLOW/DENY tests;
+- inspect Lambda metrics/logs, Gateway/Policy state, and CloudTrail evidence;
+- perform only experiment-owned cleanup.
 
-All experiment-owned cloud resources and log groups were deleted after proof.
+## MUST
 
-## Constraints Satisfied
+- Re-verify AWS caller identity and intended region before mutation.
+- Use Gateway inbound `AWS_IAM`; do not use `NONE`.
+- Use MCP Gateway protocol and exactly one Lambda target/tool.
+- Keep the Lambda deterministic and read-only; it may only return lab status/input and write its normal execution log.
+- Use Policy Engine mode `ENFORCE`.
+- Establish provider execution count before and after each controlled call.
+- Prove ALLOW causes provider execution and DENY does not increase provider execution count.
+- Scope Gateway service role to invoke only the experiment Lambda.
+- Scope temporary GitHub caller role to invoke only the experiment Gateway and trust only the exact Issue #15 branch OIDC subject.
+- Use no long-lived AWS credentials.
+- Keep committed evidence public-safe.
+- Tear down all Issue #15 cloud resources and experiment log groups after proof.
 
-- AWS caller identity and intended region were re-verified before mutation.
-- Direct-code ZIP deployment was used; no ECR or CodeBuild.
-- IAM/SigV4 inbound authentication was used; no Cognito/JWT.
-- The deterministic HTTP app implemented `POST /invocations` and `GET /ping` on port 8080.
-- No Bedrock model invocation was used.
-- Runtime execution-role access was limited to Runtime logging/telemetry plus exact artifact read access; no unrelated service access was added.
-- Runtime state, invocation, and logs were independently verified through AWS Core.
-- No account IDs, principal ARNs, Runtime ARNs, credentials, or generated resource IDs are retained in the final repository files.
-- Existing GitHub OIDC Terraform role, Terraform state bucket, and drift-proof SSM parameter were not modified.
+## MUST NOT
 
-## Verification Result
+- Modify or widen the existing main-branch GitHub OIDC/Terraform role.
+- Modify the retained Terraform state bucket or SSM drift-proof parameter.
+- Create AgentCore Runtime, Cognito, frontend hosting, VPC/networking, databases, or model invocation.
+- Grant Lambda mutation permissions to the tool.
+- Use `authorizerType=NONE`.
+- Retain experiment cloud resources after acceptance unless Amit explicitly changes the decision.
 
-- AgentCore Runtime resource type was available in the LAB region: PASS.
-- Pre-deployment readback found zero conflicting Runtimes: PASS.
-- Unit tests for direct/wrapped prompt payloads and invalid input: PASS.
-- Runtime reached `READY`: PASS.
-- `InvokeAgentRuntime` returned HTTP 200 and the deterministic `AgentCore Runtime OK` response: PASS.
-- Provider readback confirmed direct-code Python 3.13, HTTP protocol, and no custom authorizer: PASS.
-- Runtime logs confirmed the server started, the invocation returned 200, and `/ping` health checks returned 200: PASS.
-- Runtime session stop: PASS.
-- Runtime/artifact bucket/execution role/temporary package role/log-group cleanup: PASS.
-- Final readback found zero experiment Runtimes and no retained Issue #13 resources: PASS.
+## Milestones
 
-## Decisions
+1. Rebaseline repository docs and add `experiments/02-agentcore-gateway-policy/`.
+2. Create the deterministic Lambda provider, its execution role, Gateway service role, and temporary branch-scoped caller role.
+3. Create one MCP/AWS_IAM Gateway, Lambda target, and ENFORCE Policy Engine.
+4. Create an ALLOW Cedar policy and prove one successful tool/provider execution.
+5. Replace the effective permit with a DENY/default-deny state and prove the Gateway rejects the call while provider execution count remains unchanged.
+6. Independently verify evidence, record lessons, and tear down every Issue #15 resource.
 
-- AgentCore Runtime: **KEEP**.
-- Direct-code deployment: **KEEP** for small Python experiments.
-- IAM/SigV4 inbound auth: **KEEP** as the default AWS-internal/lab path.
-- Full sample Cognito/frontend/ECR/CodeBuild architecture: **DEFER** until a use case requires it.
+## Verification
 
-## Next Milestone
+- Gateway/Policy/Lambda resource types are available in `ap-southeast-1`.
+- Gateway and target reach READY state.
+- Policy Engine reaches ACTIVE and is attached to Gateway in ENFORCE mode.
+- ALLOW tool call returns the Lambda response and execution count increases by exactly one controlled invocation.
+- DENY call is rejected and execution count/log marker does not increase.
+- Final AWS Core readback confirms experiment resources are absent after teardown.
 
-AgentCore Gateway + Policy ALLOW/DENY using one harmless read-only tool, with the critical proof that a `DENY` decision results in **zero provider execution**.
+## Stop Gates
+
+Stop if caller identity/region differs from the intended PERSONAL/LAB target, policy/gateway is unavailable, Cedar/action naming cannot be resolved unambiguously, permissions would need broad unrelated access, or provider execution cannot be measured reliably.
+
+## Acceptance
+
+Return `PASS | PARTIAL | BLOCKED` with deterministic ALLOW/DENY evidence, zero provider execution on DENY, clean teardown, and one recommended next learning milestone.
