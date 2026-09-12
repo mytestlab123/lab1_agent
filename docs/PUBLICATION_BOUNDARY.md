@@ -39,19 +39,24 @@ The existing proof role belongs to another repository and must not be reused unl
 
 ## Current lab runtime contract
 
-The active IaC proof uses repository Variables rather than committed environment-specific values:
+The active IaC proof uses repository Variables for environment-specific values:
 
 - `AWS_REGION`
 - `AWS_OIDC_ROLE_ARN`
 - `TF_STATE_BUCKET`
-- `TF_STATE_KEY`
 - `TF_PARAMETER_NAME`
+
+The Terraform state key is intentionally committed as the canonical repo-local key:
+
+`lab1-agent/issue-5/terraform.tfstate`
+
+It is not a credential or environment secret. Keeping one canonical state key in Git prevents accidental state forks caused by a mistyped runtime variable.
 
 The workflow retains only `contents: read` and `id-token: write`. Deployment runs from `main`; there is no `pull_request` deployment trigger. The AWS OIDC trust is bound to the repository's immutable owner/repository identity plus `refs/heads/main`.
 
 No long-lived AWS access keys are required or stored.
 
-Older Git commits, Issues/PRs, and Actions logs may still contain non-secret AWS identifiers from the private-lab phase. Moving current configuration to Variables prevents new workflow YAML from repeating those values; it does not erase history.
+Older Git commits, Issues/PRs, and Actions logs may still contain non-secret AWS identifiers from the private-lab phase. Moving current configuration to Variables prevents new workflow YAML from repeating those values; it does not erase history. Repository Variables are also not secret masking: resolved values may appear in Actions logs. Use GitHub Secrets only when a value truly needs to be concealed from logs.
 
 ## Before switching repository visibility to public
 
