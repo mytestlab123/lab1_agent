@@ -20,7 +20,7 @@ env:
   AWS_REGION: ${{ vars.AWS_REGION }}
   AWS_ROLE_ARN: ${{ vars.AWS_OIDC_ROLE_ARN }}
   TF_STATE_BUCKET: ${{ vars.TF_STATE_BUCKET }}
-  TF_STATE_KEY: ${{ vars.TF_STATE_KEY }}
+  TF_STATE_KEY: lab1-agent/issue-5/terraform.tfstate
   TF_PARAMETER_NAME: ${{ vars.TF_PARAMETER_NAME }}
   TF_IN_AUTOMATION: "true"
 
@@ -35,7 +35,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          for name in AWS_REGION AWS_ROLE_ARN TF_STATE_BUCKET TF_STATE_KEY TF_PARAMETER_NAME; do
+          for name in AWS_REGION AWS_ROLE_ARN TF_STATE_BUCKET TF_PARAMETER_NAME; do
             if [ -z "${!name:-}" ]; then
               echo "Required repository variable is missing for ${name}" >&2
               exit 1
