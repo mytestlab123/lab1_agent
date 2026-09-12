@@ -17,18 +17,21 @@ Status: ACTIVE
 - Public-safe GitHub OIDC -> Terraform -> AWS deploy/drift/reconciliation is proven.
 - Pull-request Terraform validation is AWS-free and uses a committed provider lockfile.
 - Reusable environment-specific AWS knowledge remains in private `mytestlab123/chatgpt-aws`.
-- Experiment 01 proved AgentCore Runtime direct-code Python deployment with IAM/SigV4 invocation.
-- Experiment 01 used no Cognito, frontend, ECR, CodeBuild, VPC, or Bedrock model call.
-- Experiment 01 cloud resources were fully torn down after verification; no AgentCore Runtime from the experiment is retained.
-- The pre-existing Terraform/OIDC state bucket, deployment role, and SSM drift-proof parameter remain unchanged.
+- Experiment 01 proved AgentCore Runtime direct-code Python deployment with IAM/SigV4 invocation and was merged in PR #14.
+- Experiment 01 cloud resources were fully torn down; no AgentCore Runtime from that experiment is retained.
+- Experiment 02 targets AgentCore Gateway + Policy with one read-only Lambda tool and measurable ALLOW/DENY provider execution.
+- Gateway, GatewayTarget, PolicyEngine, and Lambda resource types are available in the intended LAB region.
+- The pre-existing Terraform/OIDC state bucket, deployment role, and SSM drift-proof parameter remain unchanged and out of scope.
 
 ## Active Work
 
-- Issue: #13 — AgentCore Runtime direct-code IAM proof.
-- Branch: `issue-13-agentcore-runtime`.
-- Result: PASS; preparing the final review/merge package with code, reproducible scripts, source ledger, evidence, and lessons.
+- Issue: #15 — AgentCore Gateway + Policy ALLOW/DENY proof.
+- Branch: `issue-15-agentcore-gateway-policy`.
+- Critical acceptance: DENY must result in zero provider execution.
 
 ## Next Action
 
-- Review and merge the Issue #13 PR.
-- Then open exactly one next experiment: AgentCore Gateway + Policy ALLOW/DENY with one harmless read-only tool and proof that DENY causes zero provider execution.
+- Implement the deterministic Lambda/Gateway/Policy experiment.
+- Run ALLOW and DENY tests with provider execution-count evidence.
+- Independently verify and clean up all Issue #15 resources.
+- Review/merge one cohesive Issue #15 PR if the experiment passes.
