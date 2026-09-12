@@ -37,6 +37,22 @@ Do not store long-lived AWS access keys merely to make the repository public.
 
 The existing proof role belongs to another repository and must not be reused unless its trust policy is explicitly redesigned. The preferred next experiment is a new/scoped role for this repository or an intentionally reviewed trust-policy change.
 
+## Current lab runtime contract
+
+The active IaC proof uses repository Variables rather than committed environment-specific values:
+
+- `AWS_REGION`
+- `AWS_OIDC_ROLE_ARN`
+- `TF_STATE_BUCKET`
+- `TF_STATE_KEY`
+- `TF_PARAMETER_NAME`
+
+The workflow retains only `contents: read` and `id-token: write`. Deployment runs from `main`; there is no `pull_request` deployment trigger. The AWS OIDC trust is bound to the repository's immutable owner/repository identity plus `refs/heads/main`.
+
+No long-lived AWS access keys are required or stored.
+
+Older Git commits, Issues/PRs, and Actions logs may still contain non-secret AWS identifiers from the private-lab phase. Moving current configuration to Variables prevents new workflow YAML from repeating those values; it does not erase history.
+
 ## Before switching repository visibility to public
 
 Review all of the following, not only current files:
