@@ -1,12 +1,22 @@
 # ChatGPT AWS Consumer Lab
 
-A small personal LAB repository for proving that a fresh ChatGPT session can reuse AWS operating knowledge from `mytestlab123/chatgpt-aws` without depending on previous-chat memory.
+A small public PERSONAL/LAB repository for hands-on AWS and AgentCore experiments driven by ChatGPT + GitHub + AWS Core, while reusable private AWS operating knowledge remains centralized in `mytestlab123/chatgpt-aws`.
 
 ## Current focus
 
-Issue #3 proves the cross-session consumer path with connected GitHub + AWS Core using read-only AWS verification only.
+The AWS consumer/OIDC/Terraform foundations are proven. The lab is now evaluating small AgentCore capabilities one at a time.
 
-The reusable AWS/MCP knowledge remains centralized in private `mytestlab123/chatgpt-aws`; this repository keeps only project-specific, public-safe decisions and evidence.
+**Experiment 01 — AgentCore Runtime direct-code IAM proof: PASS.**
+
+It proved the smallest Runtime path:
+
+```text
+Python HTTP app -> ZIP -> S3 -> AgentCore Runtime -> IAM/SigV4 invoke -> verify -> teardown
+```
+
+No Cognito, frontend, ECR, CodeBuild, VPC, or Bedrock model call was needed.
+
+See `experiments/01-agentcore-runtime/` for code, source classification, reproducible scripts, and learnings.
 
 ## Start Here
 
@@ -19,8 +29,8 @@ The reusable AWS/MCP knowledge remains centralized in private `mytestlab123/chat
 
 ## Publication boundary
 
-Treat repository content, Issue/PR text, and Git history as potentially public.
+Treat repository content, Issue/PR text, Actions logs, and Git history as public.
 
-Do not commit exact environment identifiers or credentials. If future workflows need environment-specific values, prefer GitHub repository/environment **Variables** for non-secret configuration and **Secrets** only for actual secrets or values Amit intentionally wants hidden. Prefer GitHub OIDC over stored AWS access keys.
+Never commit credentials, tokens, private keys, session credentials, or private environment data. Use GitHub Variables for non-secret runtime configuration and Secrets only for genuine secrets. Prefer scoped GitHub OIDC over stored AWS access keys.
 
-See `docs/PUBLICATION_BOUNDARY.md` for what can and cannot be moved into Variables/Secrets.
+See `docs/PUBLICATION_BOUNDARY.md`.
