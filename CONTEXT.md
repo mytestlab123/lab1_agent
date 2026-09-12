@@ -12,25 +12,23 @@ Status: ACTIVE
 
 ## Current Truth
 
-- Cross-session AWS MCP consumer proof completed in merged PR #4.
 - This repository is public and unarchived.
-- Reusable AWS Core/MCP + GitHub/OIDC knowledge lives in private `mytestlab123/chatgpt-aws`.
-- The persistent GitHub OIDC -> Terraform -> AWS path and drift/reconciliation proof are complete.
-- A repo-specific GitHub OIDC role is scoped to this repository's immutable identity and `main` only.
-- A small encrypted, versioned, public-blocked S3 bucket is retained for Terraform state.
-- The only Terraform-managed target is one non-sensitive SSM String parameter.
-- Runtime AWS identifiers are provided through repository Variables; no long-lived AWS access keys are used.
-- Pull-request Terraform validation is intentionally AWS-free: read-only GitHub token, backend disabled, no OIDC, no plan/apply.
+- Cross-session AWS Core/GitHub knowledge reuse is proven.
+- Public-safe GitHub OIDC -> Terraform -> AWS deploy/drift/reconciliation is proven.
+- Pull-request Terraform validation is AWS-free and uses a committed provider lockfile.
+- Reusable environment-specific AWS knowledge remains in private `mytestlab123/chatgpt-aws`.
+- Experiment 01 proved AgentCore Runtime direct-code Python deployment with IAM/SigV4 invocation.
+- Experiment 01 used no Cognito, frontend, ECR, CodeBuild, VPC, or Bedrock model call.
+- Experiment 01 cloud resources were fully torn down after verification; no AgentCore Runtime from the experiment is retained.
+- The pre-existing Terraform/OIDC state bucket, deployment role, and SSM drift-proof parameter remain unchanged.
 
 ## Active Work
 
-- Issue: #11 — public-safe Terraform PR validation and provider lockfile.
-- PR: #12 — add PR-only validation and commit the provider lockfile.
-- Branch: `issue-11-terraform-pr-ci`.
-- Current milestone: merge after PR validation passes, then confirm the existing `main` OIDC deployment remains green with no infrastructure change.
+- Issue: #13 — AgentCore Runtime direct-code IAM proof.
+- Branch: `issue-13-agentcore-runtime`.
+- Result: PASS; preparing the final review/merge package with code, reproducible scripts, source ledger, evidence, and lessons.
 
 ## Next Action
 
-- Review and merge PR #12.
-- Confirm the `main` Terraform workflow reports no changes.
-- Then start one small AgentCore Runtime hands-on experiment rather than adding more CI ceremony.
+- Review and merge the Issue #13 PR.
+- Then open exactly one next experiment: AgentCore Gateway + Policy ALLOW/DENY with one harmless read-only tool and proof that DENY causes zero provider execution.

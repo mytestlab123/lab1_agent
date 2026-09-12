@@ -7,5 +7,7 @@ node_modules/
 __pycache__/
 .pytest_cache/
 .terraform/
+.build/
+.runtime-state.json
 .AGENTS-temp/
 tmp/
