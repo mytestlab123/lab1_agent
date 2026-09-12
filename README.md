@@ -1,32 +1,26 @@
-# <Project Name>
+# ChatGPT AWS Consumer Lab
 
-One sentence explaining the problem this repository solves.
+A small personal LAB repository for proving that a fresh ChatGPT session can reuse AWS operating knowledge from `mytestlab123/chatgpt-aws` without depending on previous-chat memory.
 
-## ChatGPT + AWS sessions
+## Current focus
 
-Before AWS work in a new ChatGPT session, read `docs/CHATGPT_AWS_BOOTSTRAP.md`. It points to the private `mytestlab123/chatgpt-aws` source of truth for the proven AWS Core MCP + GitHub/OIDC operating model.
+Issue #3 proves the cross-session consumer path with connected GitHub + AWS Core using read-only AWS verification only.
 
-This repository is currently public, so environment-specific AWS account/principal/role details remain in the private source repository.
+The reusable AWS/MCP knowledge remains centralized in private `mytestlab123/chatgpt-aws`; this repository keeps only project-specific, public-safe decisions and evidence.
 
 ## Start Here
 
-1. Read `AGENTS.md` for repository rules and read order.
-2. Complete `INIT.md` once when the repository is first created from this template.
-3. Read `CONTEXT.md` for project identity, current truth, active Issue/PR, and next action.
-4. Read `CHATGPT.md` for ChatGPT-Codex collaboration, handoffs, `go` semantics, and repository-mismatch protection.
-5. Read `ENV.md` when runtime, cloud, host, profile, or tool dependencies matter.
-6. Read `SPEC.md` before implementation, mutation, deployment, cleanup, or trusted-contract changes.
+1. Read `AGENTS.md`.
+2. Read `CONTEXT.md` for current project truth and active work.
+3. Read `docs/CHATGPT_AWS_BOOTSTRAP.md` for the cross-session AWS bootstrap.
+4. Read `ENV.md` for runtime/tool/environment expectations.
+5. Read `SPEC.md` before implementation, AWS mutation, deployment, or cleanup.
+6. Read `CHATGPT.md` for ChatGPT-Codex-GitHub collaboration rules.
 
-## Template Model
+## Publication boundary
 
-Keep root contracts short and separate by responsibility:
+Treat repository content, Issue/PR text, and Git history as potentially public.
 
-- `AGENTS.md` — router and core repository rules
-- `CHATGPT.md` — ChatGPT ↔ Codex collaboration
-- `CONTEXT.md` — current project/repository state
-- `SPEC.md` — execution authority and milestone contract
-- `INIT.md` — one-time short initialization interview
-- `ENV.md` — project runtime/tool/cloud dependencies
-- `ROADMAP.md` — useful future milestones, not current authority
+Do not commit exact environment identifiers or credentials. If future workflows need environment-specific values, prefer GitHub repository/environment **Variables** for non-secret configuration and **Secrets** only for actual secrets or values Amit intentionally wants hidden. Prefer GitHub OIDC over stored AWS access keys.
 
-Prefer one cohesive, reviewable PR containing related phases/tasks over micro-PRs. Reusable cross-project guidance belongs in [Agent OS](https://github.com/amitkarpe/agent-os); machine-specific facts belong in the active `~/.agent/HOST.md` when available.
+See `docs/PUBLICATION_BOUNDARY.md` for what can and cannot be moved into Variables/Secrets.
