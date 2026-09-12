@@ -47,9 +47,15 @@ Expected invocation response:
 {"response":"AgentCore Runtime OK: hello","status":"success"}
 ```
 
-## Packaging
+## Reproduce the cloud lifecycle
 
-The direct-code ZIP needs only `main.py` for this deterministic proof:
+Prerequisites:
+
+- Python 3.10+;
+- `boto3` available in the active environment;
+- an explicitly authorized PERSONAL/LAB AWS identity with the bounded permissions required by Issue #13.
+
+Build the standard direct-code ZIP:
 
 ```bash
 python experiments/01-agentcore-runtime/scripts/package.py
@@ -57,8 +63,28 @@ python experiments/01-agentcore-runtime/scripts/package.py
 
 This writes `.build/agentcore-runtime/deployment_package.zip` and does not include credentials or environment identifiers.
 
-## Cloud lifecycle
+Deploy the temporary artifact bucket, execution role, and Runtime:
 
-The owning Issue #13 authorizes one dedicated Runtime execution role, one dedicated artifact bucket/object, one Runtime, one harmless invocation, provider verification, and teardown. Exact account/resource identifiers are intentionally not stored in this public repository.
+```bash
+python experiments/01-agentcore-runtime/scripts/deploy.py
+```
 
-See `SOURCE.md` for upstream classification and `LEARNINGS.md` for the verified result.
+Invoke through IAM/SigV4:
+
+```bash
+python experiments/01-agentcore-runtime/scripts/invoke.py
+```
+
+Tear down all experiment-owned resources:
+
+```bash
+python experiments/01-agentcore-runtime/scripts/teardown.py
+```
+
+The scripts keep exact generated identifiers only in the ignored local `.runtime-state.json` file. They do not modify the existing GitHub/Terraform OIDC role, state bucket, or SSM drift-proof parameter.
+
+## Result
+
+**PASS.** The live proof reached Runtime `READY`, returned the expected deterministic HTTP 200 response through `InvokeAgentRuntime`, produced Runtime/health-check logs, and completed a clean teardown. See `LEARNINGS.md` for the provider evidence and decisions.
+
+See `SOURCE.md` for upstream classification.
