@@ -52,11 +52,13 @@ jobs:
           set -euo pipefail
           URL="$(python - <<'PY'
           import boto3
-          items = boto3.client('bedrock-agentcore-control').list_gateways().get('items', [])
+          client = boto3.client('bedrock-agentcore-control')
+          items = client.list_gateways().get('items', [])
           matches = [item for item in items if item.get('name') == 'lab1policygateway']
           if len(matches) != 1:
               raise SystemExit(f'Expected exactly one lab1policygateway, got {len(matches)}')
-          print(matches[0]['gatewayUrl'])
+          gateway = client.get_gateway(gatewayIdentifier=matches[0]['gatewayId'])
+          print(gateway['gatewayUrl'])
           PY
           )"
           echo "gateway_url=${URL}" >> "$GITHUB_OUTPUT"
