@@ -2,6 +2,12 @@
 
 One sentence explaining the problem this repository solves.
 
+## ChatGPT + AWS sessions
+
+Before AWS work in a new ChatGPT session, read `docs/CHATGPT_AWS_BOOTSTRAP.md`. It points to the private `mytestlab123/chatgpt-aws` source of truth for the proven AWS Core MCP + GitHub/OIDC operating model.
+
+This repository is currently public, so environment-specific AWS account/principal/role details remain in the private source repository.
+
 ## Start Here
 
 1. Read `AGENTS.md` for repository rules and read order.
