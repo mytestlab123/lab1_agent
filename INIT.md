@@ -1,34 +1,17 @@
 # Initialization
 
-Status: NOT_INITIALIZED
+Status: INITIALIZED
 
-Use this file only for first-time repository setup or when Amit explicitly asks to reinitialize the project.
+This repository is initialized as the **ChatGPT AWS Consumer Lab**.
 
-## Short Interview
+## Project truth
 
-Ask only what is still unknown, normally 3-6 questions:
+- Context: PERSONAL
+- Environment: LAB
+- Primary repository: `mytestlab123/lab1_agent`
+- Reusable AWS knowledge source: private `mytestlab123/chatgpt-aws`
+- Current objective: cross-session AWS MCP consumer proof under Issue #3
+- Current AWS boundary: read-only verification only
+- Publication goal: keep committed content public-safe so the repository can later be reviewed for public visibility
 
-1. What problem, product, learning goal, or operational outcome does this repository own?
-2. Is the context `PERSONAL` or `WORK`?
-3. Which environment applies: `LOCAL`, `LAB`, `DEV`, `NONPROD`, or `PROD`?
-4. What runtime, cloud, major tools, profiles, or external services are required?
-5. What is the first useful milestone/outcome?
-6. What hard boundaries or approval gates matter, if any?
-
-Prefer discovering answers from existing repository/runtime truth before asking Amit.
-
-## Initialize
-
-After the interview, update only the files that need project-specific truth:
-
-- `README.md` — purpose and start-here guidance
-- `CONTEXT.md` — repository identity, current truth, active work
-- `SPEC.md` — execution authority, scope, milestones, stop gates
-- `ENV.md` — project runtime/tool/cloud dependencies
-- `ROADMAP.md` — only useful future milestones
-
-Then set this file to:
-
-`Status: INITIALIZED`
-
-Do not repeat the interview on normal future work. Reinitialize only when Amit asks or the repository's fundamental purpose/context changes.
+Do not repeat the initialization interview during normal work. Reinitialize only if Amit explicitly changes the repository's fundamental purpose.
