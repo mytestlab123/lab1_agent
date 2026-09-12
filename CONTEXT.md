@@ -12,19 +12,22 @@ Status: ACTIVE
 
 ## Current Truth
 
+- Cross-session AWS MCP consumer proof completed in merged PR #4.
 - This repository is private and unarchived.
-- This repository is the consumer under test; it must not depend on previous-chat memory.
 - Reusable AWS Core/MCP + GitHub/OIDC knowledge lives in private `mytestlab123/chatgpt-aws`.
-- Fresh-session AWS identity/tool access must be verified independently before any mutation.
-- Current consumer proof uses read-only AWS calls only.
-- Exact AWS account/principal/role/resource identifiers are intentionally not duplicated here.
+- Issue #5 owns the persistent IaC + OIDC + drift proof.
+- A repo-specific GitHub OIDC role is scoped to `mytestlab123/lab1_agent` `main` only.
+- A small encrypted, versioned, public-blocked S3 bucket is retained for Terraform state.
+- The only Terraform-managed target is one non-sensitive SSM String parameter.
+- No long-lived AWS access keys are used.
 
 ## Active Work
 
-- Issue: #3 — cross-session AWS MCP consumer proof
-- Branch: `consumer-proof-public-safe`
-- Current milestone: verify fresh-session knowledge reuse and produce public-safe evidence.
+- Issue: #5 — persistent IaC + OIDC + drift proof
+- Branch: `issue-5-iac-oidc-drift`
+- Current milestone: add and validate the main-only GitHub Actions/Terraform path, then prove deploy -> independent verify -> harmless drift -> reconcile -> verify.
 
 ## Next Action
 
-- Complete Issue #3 in one PR: fresh AWS Core verification, representative read-only AWS checks, GitHub access proof, public-safety boundary, and one next experiment recommendation.
+- Review and merge the Issue #5 PR so the `main`-scoped OIDC workflow can execute.
+- Verify the resulting AWS state with AWS Core, introduce one bounded parameter-value drift, run Terraform reconciliation, and record public-safe evidence.
