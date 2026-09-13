@@ -1,5 +1,10 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: Minimal low-cost CloudWatch observability delivery for the retained AgentCore Gateway.
+Description: Minimal low-cost observability delivery for the retained AgentCore Gateway.
+
+# Prerequisite: CloudWatch Transaction Search must already be ACTIVE with
+# X-Ray trace segment destination set to CloudWatchLogs. The account-level
+# Transaction Search setup is documented in Experiment 06 because it has no
+# direct CloudFormation resource.
 
 Parameters:
   GatewayArn:
@@ -24,7 +29,7 @@ Resources:
   GatewayApplicationLogSource:
     Type: AWS::Logs::DeliverySource
     Properties:
-      Name: !Sub 'lab1-${GatewayId}-application'
+      Name: lab1-i23-gateway-application
       LogType: APPLICATION_LOGS
       ResourceArn: !Ref GatewayArn
       Tags:
@@ -36,7 +41,7 @@ Resources:
   GatewayApplicationLogDestination:
     Type: AWS::Logs::DeliveryDestination
     Properties:
-      Name: !Sub 'lab1-${GatewayId}-application-cwl'
+      Name: lab1-i23-gateway-application-cwl
       DeliveryDestinationType: CWL
       DestinationResourceArn: !GetAtt GatewayApplicationLogGroup.Arn
       OutputFormat: json
@@ -60,7 +65,7 @@ Resources:
   GatewayTraceSource:
     Type: AWS::Logs::DeliverySource
     Properties:
-      Name: !Sub 'lab1-${GatewayId}-traces'
+      Name: lab1-i23-gateway-traces
       LogType: TRACES
       ResourceArn: !Ref GatewayArn
       Tags:
@@ -72,7 +77,7 @@ Resources:
   GatewayTraceDestination:
     Type: AWS::Logs::DeliveryDestination
     Properties:
-      Name: !Sub 'lab1-${GatewayId}-traces-xray'
+      Name: lab1-i23-gateway-traces-xray
       DeliveryDestinationType: XRAY
       Tags:
         - Key: project
