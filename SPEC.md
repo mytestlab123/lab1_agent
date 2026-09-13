@@ -1,84 +1,61 @@
 # Specification
 
-Status: COMPLETE
+Status: ACTIVE
 Context: PERSONAL
 Environment: LAB
-Result: PASS
+Issue: #19
 
 ## Objective
 
-Prove the smallest useful Amazon Bedrock AgentCore Harness human-approval lifecycle using a client-side `inline_function` gate.
+Compose the independently proven AgentCore Harness approval gate with the independently proven Gateway + Policy ENFORCE boundary and one harmless deterministic Lambda provider.
 
-## Outcome
-
-Issue #17 proved:
+Target flow:
 
 ```text
-request -> Harness -> typed request_approval tool_use -> PAUSE
-  REJECTED -> same-session toolResult -> end_turn
-  APPROVED -> same-session toolResult -> end_turn
+Harness
+  -> request_approval
+      REJECT -> STOP / zero provider execution
+      APPROVE -> AgentCore Gateway -> AgentCore Policy
+                   DENY  -> zero provider execution
+                   ALLOW -> harmless provider executes exactly once
 ```
 
-The final proof used a harmless simulation and performed no provider mutation.
+## Acceptance
 
-## Live verification
+PASS only if independent provider-side evidence proves all three cases:
 
-- PERSONAL/LAB identity and region were reverified.
-- Harness reached `READY` with stateless `memory.disabled`.
-- Final successful model: `global.amazon.nova-2-lite-v1:0`.
-- Both test cases emitted a real typed `request_approval` tool-use event.
-- Both first turns stopped with `tool_use`.
-- Matching `toolUseId` values were returned to the same sessions through `toolResult` messages.
-- REJECTED resumed to a final rejection with no additional tool call.
-- APPROVED resumed to a final approval with no additional tool call.
-- GitHub OIDC was used for the reproducible caller; no static AWS credentials were stored.
+| Human decision | Policy decision | Provider execution |
+|---|---|---:|
+| REJECT | not reached | 0 |
+| APPROVE | DENY | 0 |
+| APPROVE | ALLOW | exactly 1 |
 
-## Important implementation learning
+Typed Harness `tool_use` / `toolResult`, Gateway response, Policy enforcement and provider markers must be recorded. Model/UI prose alone is not evidence.
 
-### Harness HITL resume contract
+## Authorized temporary AWS scope
 
-Resume requires two messages in the same `runtimeSessionId`:
+Issue #19 may create and delete only experiment-owned PERSONAL/LAB resources needed for the bounded proof:
 
-1. assistant re-sends the paused `toolUse` block;
-2. user supplies the matching `toolResult`.
+- one stateless AgentCore Harness and its managed Runtime;
+- one AgentCore Gateway and one Lambda-backed target;
+- one Policy Engine with narrowly scoped ALLOW/DENY test policies;
+- one harmless Lambda provider and its log group;
+- temporary least-privilege IAM roles for Lambda, Gateway, Harness and branch-scoped GitHub OIDC caller;
+- no Cognito, frontend, VPC, database, persistent application data or destructive provider operation.
 
-The typed stream is the acceptance boundary. Model prose about requesting approval is not evidence of approval enforcement.
+Existing retained Terraform/OIDC lab resources and unrelated AgentCore resources must not be modified.
 
-### Caller IAM
+## Guardrails
 
-`InvokeHarness` required the temporary GitHub OIDC caller to have both:
-
-- `bedrock-agentcore:InvokeHarness`
-- `bedrock-agentcore:InvokeAgentRuntime`
-
-scoped to the exact Harness ARN.
-
-### Execution-role trust
-
-Harness provisions managed Runtime infrastructure underneath. The temporary execution role therefore required AgentCore service trust with `aws:SourceAccount` plus an account/region AgentCore SourceArn scope broad enough for the managed child resources.
-
-### Model/account setup
-
-A Claude Sonnet 4.6 reproduction was blocked by the account-level Anthropic use-case-details requirement. That was treated as model entitlement/configuration, not as an HITL failure. Nova 2 Lite completed the proof.
-
-## Constraints satisfied
-
-- PERSONAL/LAB only.
-- No production/work resources.
+- PERSONAL/LAB only, `ap-southeast-1`.
+- Reverify STS identity before mutation.
 - No static AWS access keys.
-- No provider mutation in the approval proof.
-- Stateless Harness memory.
-- Explicit iterations/tokens/timeout guardrails.
-- Existing Terraform/OIDC retained resources were not modified.
+- Harness uses `memory.disabled` and explicit iteration/token/timeout limits.
+- Human REJECT must not call Gateway.
+- AgentCore Policy remains ENFORCE and is the final deterministic execution authorization boundary.
+- Provider execution must be counted independently from provider-side markers.
+- Tear down every Issue #19 resource and verify absence before closing.
 
-## Next Milestone
+## Durable output
 
-Experiment 04 — combine the proven approval gate with the proven Gateway + Policy enforcement path:
-
-```text
-human reject -> zero provider execution
-human approve + Policy DENY -> zero provider execution
-human approve + Policy ALLOW -> harmless provider executes exactly once
-```
-
-Human approval remains an orchestration gate; AgentCore Policy remains the final deterministic authorization boundary.
+Record the reproducible controller/client code and public-safe evidence under `experiments/04-agentcore-integrated-governance/`, add the learning to `docs/`, update roadmap/context, and finish through one cohesive PR.
