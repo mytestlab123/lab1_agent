@@ -2,3 +2,6 @@ site_name: Lab Documentation
 
 theme:
   name: material
+
+plugins:
+  - search
