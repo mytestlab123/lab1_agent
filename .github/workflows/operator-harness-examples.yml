@@ -1,0 +1,89 @@
+name: Operator Harness examples
+
+on:
+  push:
+    branches: [issue-28-operator-harness-examples]
+    paths:
+      - 'experiments/08-operator-harness-examples/*.py'
+      - '.github/workflows/operator-harness-examples.yml'
+  pull_request:
+    paths:
+      - 'experiments/08-operator-harness-examples/**'
+      - 'docs/harness-examples*.md'
+      - '.github/workflows/operator-harness-examples.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: '3.13'
+      - name: Offline fail-closed parser tests
+        working-directory: experiments/08-operator-harness-examples
+        run: python -m unittest -v test_examples.py
+      - name: Strict documentation build without AWS credentials
+        run: |
+          python -m pip install -r requirements-docs.txt
+          mkdocs build --strict -f docs-config.yml
+  live:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/issue-28-operator-harness-examples'
+    needs: unit
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      AWS_REGION: ${{ vars.AWS_REGION }}
+      TF_PARAMETER_NAME: ${{ vars.TF_PARAMETER_NAME }}
+      AWS_PAGER: ''
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: '3.13'
+      - name: Derive dedicated test role from existing account configuration
+        id: role
+        env:
+          BASE_ROLE_ARN: ${{ vars.AWS_OIDC_ROLE_ARN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$AWS_REGION" = 'ap-southeast-1'
+          test -n "$TF_PARAMETER_NAME"
+          [[ "$BASE_ROLE_ARN" =~ ^arn:aws:iam::[0-9]{12}:role/ ]]
+          role="${BASE_ROLE_ARN%:role/*}:role/github-actions-lab1-harness-tests"
+          echo "::add-mask::$role"
+          echo "arn=$role" >> "$GITHUB_OUTPUT"
+      - uses: aws-actions/configure-aws-credentials@7474bc4690e29a8392af63c5b98e7449536d5c3a
+        with:
+          role-to-assume: ${{ steps.role.outputs.arn }}
+          aws-region: ${{ env.AWS_REGION }}
+          mask-aws-account-id: true
+          role-session-name: lab1-harness-test
+          role-duration-seconds: 900
+      - name: Verify identity and install tested tool versions
+        shell: bash
+        run: |
+          set -euo pipefail
+          aws --version
+          caller="$(aws sts get-caller-identity --query Arn --output text)"
+          [[ "$caller" == *':assumed-role/github-actions-lab1-harness-tests/'* ]]
+          echo 'STS dedicated test role: PASS'
+          node --version
+          python -m pip install boto3==1.43.93 botocore==1.43.93
+          npm install --global @aws/agentcore@1.0.0-preview.30
+          agentcore --version
+      - name: Live SDK, AWS CLI and native AgentCore CLI tests
+        working-directory: experiments/08-operator-harness-examples
+        run: python live_tests.py

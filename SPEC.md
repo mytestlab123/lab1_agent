@@ -1,63 +1,41 @@
 # Specification
 
-Status: COMPLETE
+Status: IMPLEMENTED / SERVICE AND TERMINAL TESTS PASS
 Context: PERSONAL
 Environment: LAB
-Issue: #25
-Result: PASS
+Issue: #28
+PR: #29
+GUI verification: NOT_TESTED
 
-## Objective
+## Objective delivered
 
-Prove one auditable governance chain using the independently verified AgentCore controls:
+Three retained AgentCore Harness examples in ap-southeast-1:
 
-```text
-Human decision
- -> Harness typed approval
- -> authenticated IAM caller
- -> AgentCore Gateway
- -> AgentCore Policy ENFORCE
- -> harmless provider
- -> native audit evidence
-```
+1. lab1_demo_explainer: pasted finding, no effective tools, NOT LIVE VERIFIED output.
+2. lab1_demo_reader: one exact existing lab SSM String read through a dedicated Gateway/Policy/Lambda path.
+3. lab1_demo_approval: DEMO_ONLY typed inline-function pause and same-session reject/approve simulation. No remediation tool or real human-identity claim.
 
-## Acceptance result
+## Verified acceptance
 
-| Case | Human | Policy | Provider | Result |
-|---|---|---|---:|---|
-| REJECT | REJECTED | not reached | 0 | PASS |
-| APPROVE + DENY | APPROVED | DENY by default | 0 | PASS |
-| APPROVE + ALLOW | APPROVED | ALLOW | exactly 1 | PASS |
+- One versioned CloudFormation stack reached CREATE_COMPLETE; all three Harnesses reached READY with the intended persisted model/tools/memory/limits.
+- Real AWS Core and SDK invocations, independent unchanged SSM value/version, and provider-side read logs.
+- AWS CLI GetHarness for all three; native AgentCore CLI complete explainer/reader and typed approval interrupt.
+- SDK terminal helper completed both explicit simulation decisions to end_turn with matching toolUseId and unchanged session.
+- 12 offline fail-closed tests; forbidden write/shell prompts made no tool calls.
+- Full terminal test run 34768782767 PASS. Detailed evidence and versions: experiments/08-operator-harness-examples/RESULTS.md.
 
-## Live proof
+## GUI limitation
 
-- A retained Harness `lab1i25approval` ran with stateless memory and explicit iteration/token/timeout limits.
-- Per-invocation overrides used Nova 2 Lite and one client-side `request_approval` inline function.
-- Every case produced `stopReason=tool_use`, exactly one typed `request_approval`, matching same-session `toolResult`, and a successful resumed turn.
-- `issue25-human-reject` stopped at the controller boundary; exact Gateway and provider log inspection found zero matching downstream events.
-- GitHub Actions run `34748226633` executed only the two approved Gateway cases under the existing narrow Issue #21 OIDC caller roles.
-- `issue25-approve-deny` correlated to caller B, Policy default DENY, no `Executing tool` event, and provider count 0.
-- `issue25-approve-allow` correlated to caller A, Policy ALLOW, the determining Cedar policy, tool execution, and exactly one provider marker.
+No authenticated Console browser is connected. Console Playground steps and route are documented from an AWS sample, but clicks and inline-result controls are NOT_TESTED. Full validated decision/resume is available through the terminal helper. Do not relabel this limitation as a browser PASS.
 
-## Guardrails satisfied
+## Scope preserved
 
-- PERSONAL/LAB only in `ap-southeast-1`.
-- STS identity reverified before AWS mutation.
-- No static AWS credentials.
-- Existing OIDC trust was not widened for this proof.
-- AgentCore Policy remained `ENFORCE` and the final deterministic execution boundary.
-- Human REJECT stopped before Gateway.
-- Human APPROVE did not bypass Policy.
-- Provider execution was independently verified from provider-side logs.
-- No EC2, NAT Gateway, load balancer, RDS/Aurora, VPC, frontend, Cognito, always-running container or provisioned capacity was introduced.
+Only lab1_agent code/docs and dedicated personal-lab resources. SecCop remains read-only and untouched. Existing SSM parameter is read-only. No static AWS credentials, arbitrary resource selector, remediation/reset, EC2/NAT/database/public app server or scheduled workload.
 
-## Retention
+## Retention and limits
 
-The Experiment 07 Harness and previously retained Gateway, Policy, Lambda, caller roles and observability resources remain because they are low-cost/usage-priced and within the lab retention rule.
-
-## Durable output
-
-Experiment 07 evidence is stored under `experiments/07-agentcore-auditable-approval/` and published through the MkDocs learning site.
+Retain useful usage-priced resources. Each Harness: 3 iterations, 1,024 output tokens, 90-second invocation timeout, 300-second idle timeout, 1,800-second lifetime, Memory disabled. Reader Lambda: 128 MB, 15 seconds, 7-day log retention. Limits are not a monthly billing cap.
 
 ## Next
 
-Do not add AgentCore features by default. Compare this proven governance chain with SecCop and select one practical adoption milestone.
+Publish/review this cohesive PR, verify Pages, and let Amit exercise the three already-deployed Console examples. Do not implement the declined audit-correlation adoption proposal or modify SecCop.

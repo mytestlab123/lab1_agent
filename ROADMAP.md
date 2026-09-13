@@ -1,45 +1,28 @@
 # Roadmap
 
-## Completed
+## Completed learning
 
-- Cross-session AWS Core/GitHub knowledge reuse proof.
-- Public-safe GitHub OIDC + Terraform persistent state/drift proof.
-- Public-safe Terraform PR validation with no AWS credentials.
-- Experiment 01: AgentCore Runtime direct-code + IAM/SigV4.
-- Experiment 02: Gateway + Policy ALLOW/DENY, including DENY -> zero provider executions.
-- Experiment 03: Harness typed human approval pause + same-session reject/approve resume.
-- MkDocs Material + GitHub Pages publication.
-- Experiment 04: integrated approval + Gateway + Policy governance matrix.
-- Experiment 05: identity-aware Policy with two authenticated IAM callers.
-- Experiment 06: native observability correlation across identity -> Gateway -> Policy -> provider.
-- Experiment 07: full-chain auditable human approval.
-- Verified Experiment 07 outcomes:
-  - human REJECT -> Gateway not reached -> provider 0;
-  - human APPROVE + Policy DENY -> auditable DENY -> provider 0;
-  - human APPROVE + Policy ALLOW -> auditable ALLOW -> provider exactly 1.
+- Cross-session AWS Core/GitHub knowledge reuse.
+- GitHub OIDC/Terraform state, drift/reconciliation and AWS-free PR validation.
+- Experiment 01: Runtime direct-code + IAM/SigV4.
+- Experiment 02: Gateway/Policy ALLOW versus DENY with provider evidence.
+- Experiment 03: Harness typed client-tool approval pause/resume.
+- Experiment 04: controlled approval/Gateway/Policy/provider matrix.
+- Experiment 05: caller-identity-specific authorization.
+- Experiment 06: native request/Policy/provider observability correlation.
+- Experiment 07: correlated approval practice and downstream evidence, PR #26 merged.
+- Operator examples (Issue #28 / PR #29): three actual Harnesses, AWS CLI/SDK/native CLI tests, 12 offline tests and unchanged provider state. Console clicks are not claimed tested.
 
-## Active
+## Current priority
 
-- Close out Issue #25 through one reviewed PR and publish the Experiment 07 learning page.
+Let Amit use the three retained examples directly: pasted finding explanation, exact live AWS read, and DEMO_ONLY approval practice. Publish prompts, terminal instructions, Console route and honest test results.
+
+The proposed Issue #27 SecCop audit-correlation adoption is not being implemented; Amit selected the operator experience instead. No cross-repository writes are authorized by this work.
 
 ## Next
 
-- Experiment 08: SecCop adoption comparison.
-- Map the proven AgentCore controls against the SecCop architecture:
-  - human approval;
-  - authenticated principal;
-  - Gateway/tool routing;
-  - Policy enforcement;
-  - provider mutation boundary;
-  - trace/audit evidence.
-- Identify the current SecCop equivalent, the gap, and whether to adopt or defer.
-- Recommend **one** practical adoption milestone only.
+Capture Amit's Console feedback, especially whether its current Playground exposes a structured inline tool-result control. Use the already-tested terminal helper for complete decision/resume. Only after that feedback choose one useful next capability; do not automatically add another service or deploy a product GUI.
 
-## Later
+## Retention
 
-- Add more AgentCore services only when they answer a new SecCop or governance learning question.
-- Multi-tool MCP catalog, Cognito/JWT, browser, memory, dashboards or alarms are deferred unless justified by a concrete need.
-
-## Cost / retention rule
-
-Retain useful idle/usage-priced lab resources when expected cost remains negligible and comfortably below roughly USD 2/month per item and roughly USD 5/month for the retained lab footprint. Continuously billed resources such as EC2, NAT Gateway, load balancers, RDS/Aurora, continuously running containers or provisioned capacity require an explicit retain/delete decision.
+Keep useful near-zero/usage-priced resources; do not delete merely for tidiness. Standing budget assumptions remain approximately USD 2/item and USD 5 aggregate lab footprint, subject to actual usage. Active sessions/model inference/logs can cost money. No additional EC2/NAT/database/always-running host is part of the operator examples.
