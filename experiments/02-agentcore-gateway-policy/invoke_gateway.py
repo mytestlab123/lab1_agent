@@ -23,6 +23,32 @@ def build_body(tool_name, request_id):
     }).encode("utf-8")
 
 
+def response_matches_expectation(status, text, expected):
+    """Return True only for the exact ALLOW or DENY shapes used by this lab."""
+    body_lower = text.lower()
+    if expected == "allow":
+        return (
+            status == 200
+            and "agentcore gateway policy provider executed" in body_lower
+            and '"error"' not in body_lower
+        )
+
+    if status in {401, 403}:
+        return True
+
+    try:
+        payload = json.loads(text)
+    except json.JSONDecodeError:
+        return "tool execution denied" in body_lower or "not authorized" in body_lower
+
+    error = payload.get("error") if isinstance(payload, dict) else None
+    if not isinstance(error, dict):
+        return False
+
+    message = str(error.get("message", "")).lower()
+    return error.get("code") == -32002 and "denied" in message
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--gateway-url", required=True)
@@ -59,14 +85,8 @@ def main():
 
     print(json.dumps({"http_status": status, "body": text}, indent=2))
 
-    body_lower = text.lower()
-    if args.expect == "allow":
-        if status != 200 or "agentcore gateway policy provider executed" not in body_lower:
-            raise SystemExit("ALLOW expectation failed")
-    else:
-        denied = status in {401, 403} or "denied" in body_lower or "not authorized" in body_lower or "iserror" in body_lower
-        if not denied:
-            raise SystemExit("DENY expectation failed")
+    if not response_matches_expectation(status, text, args.expect):
+        raise SystemExit(f"{args.expect.upper()} expectation failed")
 
 
 if __name__ == "__main__":
