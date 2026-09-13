@@ -1,78 +1,55 @@
 # Specification
 
-Status: COMPLETE
+Status: ACTIVE
 Context: PERSONAL
 Environment: LAB
-Issue: #21
-Result: PASS
+Issue: #23
 
 ## Objective
 
-Reuse the retained AgentCore Gateway + Policy Engine + harmless Lambda provider and prove deterministic authorization from authenticated IAM caller identity.
+Reuse the retained Experiment 05 identity-aware AgentCore Gateway + Policy Engine + harmless Lambda provider path and prove end-to-end observability for one ALLOW request and one DENY request without changing authorization semantics.
 
-Proven flow:
+Target:
 
 ```text
-GitHub OIDC caller A -> Gateway -> Policy -> ALLOW -> provider executes exactly once
-GitHub OIDC caller B -> Gateway -> Policy -> DENY  -> provider executes zero times
+GitHub OIDC caller
+  -> AgentCore Gateway
+     -> AgentCore Policy decision
+        -> provider marker/log when allowed
 ```
 
-## Acceptance result
+Use one unique correlation/request ID per case and identify which native AWS telemetry carries evidence for authentication, authorization, Gateway handling and provider execution.
 
-| Caller | Policy decision | Provider execution | Result |
-|---|---|---:|---|
-| caller A | ALLOW | exactly 1 | PASS |
-| caller B | DENY by default | 0 | PASS |
+## Acceptance
 
-Authorization was attributable to authenticated IAM identity, not model/UI text. Provider execution was independently verified from provider-side CloudWatch markers.
+PASS only if independent evidence proves:
 
-## Live proof
+| Case | Caller | Policy | Provider | Required evidence |
+|---|---|---|---:|---|
+| ALLOW | caller A | ALLOW | exactly 1 | caller identity + Gateway + Policy + provider correlation |
+| DENY | caller B | DENY | 0 | caller identity + Gateway + Policy correlation + no provider marker |
 
-- GitHub Actions run `34743717610` authenticated two different branch-scoped OIDC IAM roles in the same workflow.
-- Caller A assumed the dedicated allow role and invoked the retained Gateway successfully.
-- Caller A matched an exact Cedar permit for its assumed-role identity, the exact restored tool action, and the exact retained Gateway.
-- Caller B assumed a different dedicated role and had no matching permit.
-- AgentCore Policy returned JSON-RPC `-32002` with `Tool Execution Denied` and `No policy applies to the request (denied by default)` for caller B.
-- AWS Core independently verified one provider marker for `issue21-caller-a` and zero provider markers for `issue21-caller-b`.
-- No static AWS credentials were stored.
+The evidence must distinguish authentication, authorization and execution as separate stages. Model/UI text alone is not evidence.
 
-## Important learning
-
-### Retained resource does not always mean retained dependency
-
-The retained Gateway was still `READY`, but its Lambda target was absent. Before restoration:
-
-- direct invocation of the old tool name returned `Unknown tool`;
-- `tools/list` exposed only the built-in semantic-search helper;
-- semantic search reported that no targets were configured.
-
-The existing Lambda provider was still present, so the lab restored only the missing Gateway target. No new continuously billed workload was introduced.
-
-### Semantic-search Gateway behavior
-
-The retained Gateway uses semantic search. `tools/list` therefore exposes the built-in `x_amz_bedrock_agentcore_search` helper instead of enumerating every provider tool directly. After the target was restored, that helper resolved the real tool name used by the proof.
-
-### Policy schema drift is detectable
-
-The pre-existing Experiment 04 permit referenced the previous target/action and was reported by the current AgentCore policy analyzer as not matching the most recent tool input schema. The new Issue #21 caller A permit passed validation only after the current target/tool schema existed, then was tightened to the exact current action.
-
-### Default deny is sufficient for caller B
-
-Caller B required no explicit `forbid` rule. With Policy ENFORCE enabled and no matching permit for caller B, AgentCore denied the request by default before provider execution.
-
-## Guardrails satisfied
+## Authorized scope
 
 - PERSONAL/LAB only in `ap-southeast-1`.
-- STS identity was reverified before mutation.
-- AgentCore Policy stayed in ENFORCE mode.
-- Both GitHub OIDC roles trust only the exact repository identity and Issue #21 branch subject.
-- Both roles can invoke only the retained Gateway required by this proof.
-- No Cognito, frontend, VPC, database, EC2, NAT Gateway, load balancer, always-running container, provisioned capacity or destructive provider operation was introduced.
+- Reuse the retained Gateway, Policy Engine, Gateway target, Lambda provider and Issue #21 OIDC caller roles.
+- Prefer native AgentCore and CloudWatch observability already available for Gateway and Policy.
+- Add only the minimum low-cost CloudWatch/AgentCore observability configuration required for the proof.
+- No EC2, NAT Gateway, load balancer, database, VPC, frontend, Cognito, always-running container or provisioned capacity.
+- No static AWS credentials.
 
-## Retention
+## Guardrails
 
-Useful near-zero/usage-priced resources are intentionally retained under the lab cost rule. This includes the restored Gateway target, the caller A identity permit, and the two narrowly scoped OIDC caller roles. Continuously billed workloads still require a separate explicit decision.
+- Reverify STS identity before AWS mutation.
+- Keep existing authorization semantics unchanged: caller A remains exact permit; caller B remains default deny.
+- Keep AgentCore Policy in ENFORCE mode.
+- Do not broaden OIDC trust or Gateway IAM permissions merely to obtain telemetry.
+- Provider execution must be independently verified from provider-side markers.
+- Prefer native Gateway/Policy spans, logs and metrics before adding custom tracing infrastructure.
+- Retain only useful near-zero/usage-priced observability resources within the existing lab cost boundary.
 
 ## Durable output
 
-Experiment 05 learning is recorded under `experiments/05-agentcore-identity/` and `docs/identity-aware-policy.md`, and is published through the MkDocs/GitHub Pages learning site.
+Record reproducible evidence under `experiments/06-agentcore-observability/`, publish the learning through MkDocs/GitHub Pages, update `CONTEXT.md` and `ROADMAP.md`, and finish through one cohesive PR.
