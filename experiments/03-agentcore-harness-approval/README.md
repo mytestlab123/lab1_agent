@@ -75,6 +75,18 @@ Harness provisions AgentCore Runtime infrastructure underneath. A trust policy l
 
 `memory.disabled` avoided creating a managed Memory resource and kept the experiment focused on the approval lifecycle.
 
+## Cleanup
+
+Final independent AWS readback after deletion found:
+
+- matching Harnesses: **0**;
+- matching managed Runtimes: **0**;
+- matching Memories: **0**;
+- temporary Harness execution role: **not found**;
+- temporary GitHub OIDC caller role: **not found**.
+
+The retained Terraform/OIDC resources from earlier lab experiments were not modified.
+
 ## Scope boundary
 
 This experiment proves only the Harness pause/reject/approve/resume lifecycle. It does **not** yet prove the complete governance chain through AgentCore Gateway + Policy + provider execution.
