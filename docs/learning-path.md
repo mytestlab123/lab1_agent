@@ -1,7 +1,3 @@
 # Learning Path
 
-This repository learns AgentCore one small experiment at a time.
-
-The current repository roadmap is included below.
-
---8<-- "ROADMAP.md"
+See `ROADMAP.md` in the repository root for the current sequence of hands-on experiments.
