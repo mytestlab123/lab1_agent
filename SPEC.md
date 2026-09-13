@@ -67,4 +67,4 @@ The Issue #19 Harness had already been deleted before this retention decision an
 
 ## Durable output
 
-Experiment 04 evidence and learning are recorded under `experiments/04-agentcore-integrated-governance/` and `docs/`. Retained low-cost AWS resources are reusable inputs for the next experiment rather than cleanup debt.
+Experiment 04 evidence and learning are published in `docs/integrated-governance.md` and linked from the MkDocs learning site. Retained low-cost AWS resources are reusable inputs for the next experiment rather than cleanup debt.
