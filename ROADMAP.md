@@ -21,24 +21,31 @@
   - caller A matched an exact Cedar permit -> provider execution exactly once;
   - caller B had no matching permit -> AgentCore default DENY -> provider execution zero.
 - Restored the missing retained Gateway target without adding a continuously billed workload.
+- Experiment 06: native observability and audit correlation proof.
+- Verified ALLOW correlation across OIDC identity -> Gateway request/trace -> Policy ALLOW -> tool execution -> exactly one Lambda provider marker.
+- Verified DENY correlation across OIDC identity -> Gateway request/trace -> Policy default DENY, with no tool execution event and zero provider markers.
+- Enabled low-cost native Gateway application logs, Gateway traces and CloudWatch Transaction Search for the retained lab path.
 
 ## Active
 
-- Close out Issue #21 through one reviewed PR and publish the Experiment 05 learning page.
+- Close out Issue #23 through one reviewed PR and publish the Experiment 06 learning page.
 
 ## Next
 
-- Experiment 06: end-to-end observability and trace correlation.
-- Reuse the retained identity-aware Gateway + Policy + Lambda path.
-- Give one request a correlation ID and prove that the same request can be followed through authenticated caller identity, Gateway invocation, Policy decision and provider-side evidence.
-- Prefer existing AgentCore/CloudWatch observability before adding any new infrastructure.
+- Experiment 07: full-chain auditable human approval.
+- Recreate the small proven Harness approval gate and compose it with the retained observable identity-aware Gateway + Policy + Lambda path.
+- Give the approval flow one correlation/session identity and prove:
+  - human REJECT -> no Gateway/provider execution;
+  - human APPROVE + Policy DENY -> auditable DENY, provider 0;
+  - human APPROVE + Policy ALLOW -> auditable ALLOW, provider exactly 1.
+- Keep Policy as the final deterministic execution boundary and retain only near-zero/usage-priced resources.
 
 ## Later
 
-- Reintroduce the proven Harness approval gate into the correlated trace if useful.
-- Multi-tool MCP catalog only after identity and traceability are proven.
+- Compare the fully proven AgentCore governance pattern with SecCop and recommend one adoption milestone only.
+- Multi-tool MCP catalog only when it adds learning beyond the governance path.
 - Cognito/JWT + browser invocation only when an end-user UI is actually required.
-- Compare the retained AgentCore governance pattern with SecCop and recommend one adoption milestone only.
+- Evaluate dashboards/alarms only after the trace fields worth operating on are known.
 
 ## Cost / retention rule
 
