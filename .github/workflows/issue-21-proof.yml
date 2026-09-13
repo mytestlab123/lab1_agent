@@ -29,7 +29,7 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
       - name: Prove identity
         run: aws sts get-caller-identity
-      - name: List current Gateway tools
+      - name: Search current Gateway tools
         shell: bash
         run: |
           curl --silent --show-error --fail-with-body \
@@ -39,5 +39,5 @@ jobs:
             -H "Accept: application/json, text/event-stream" \
             -H "Content-Type: application/json" \
             -H "MCP-Protocol-Version: 2025-03-26" \
-            --data '{"jsonrpc":"2.0","id":"issue21-tools-list","method":"tools/list","params":{}}' \
+            --data '{"jsonrpc":"2.0","id":"issue21-search","method":"tools/call","params":{"name":"x_amz_bedrock_agentcore_search","arguments":{"query":"read-only status provider get_status"}}}' \
             "$GATEWAY_URL"
