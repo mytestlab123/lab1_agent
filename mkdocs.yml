@@ -1,0 +1,55 @@
+site_name: AWS & AgentCore Hands-on Lab
+site_description: Public learning notes from small, verified AWS and Amazon Bedrock AgentCore experiments.
+site_url: https://mytestlab123.github.io/lab1_agent/
+repo_url: https://github.com/mytestlab123/lab1_agent
+repo_name: mytestlab123/lab1_agent
+edit_uri: edit/main/docs/
+
+nav:
+  - Home: index.md
+  - Learning Path: learning-path.md
+  - AWS Control Model: aws-control-model.md
+  - AgentCore:
+      - Runtime: agentcore/runtime.md
+      - Gateway + Policy: agentcore/gateway-policy.md
+      - Human Approval Harness: agentcore/approval-harness.md
+  - Lab Operations:
+      - Cross-session Bootstrap: CHATGPT_AWS_BOOTSTRAP.md
+      - Consumer Proof: CONSUMER_PROOF.md
+      - Publication Boundary: PUBLICATION_BOUNDARY.md
+
+theme:
+  name: material
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.indexes
+    - navigation.top
+    - content.code.copy
+    - search.suggest
+    - search.highlight
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+
+plugins:
+  - search
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
