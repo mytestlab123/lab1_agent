@@ -13,6 +13,7 @@ permissions:
 env:
   AWS_REGION: ap-southeast-1
   GATEWAY_URL: https://lab1i19gateway-f266mmewq2.gateway.bedrock-agentcore.ap-southeast-1.amazonaws.com/mcp
+  TOOL_NAME: lab1i21target___get_status
 
 jobs:
   proof:
@@ -22,22 +23,41 @@ jobs:
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
         with:
           persist-credentials: false
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: "3.13"
+      - name: Install AWS SDK
+        run: python -m pip install --upgrade boto3 botocore
+
       - name: Configure caller A
         uses: aws-actions/configure-aws-credentials@7474bc4690e29a8392af63c5b98e7449536d5c3a
         with:
           role-to-assume: arn:aws:iam::063884340510:role/github-actions-lab1-i21-allow
           aws-region: ${{ env.AWS_REGION }}
-      - name: Prove identity
+      - name: Prove caller A identity
         run: aws sts get-caller-identity
-      - name: Search current Gateway tools
-        shell: bash
+      - name: Caller A must be allowed
         run: |
-          curl --silent --show-error --fail-with-body \
-            --aws-sigv4 "aws:amz:${AWS_REGION}:bedrock-agentcore" \
-            --user "${AWS_ACCESS_KEY_ID}:${AWS_SECRET_ACCESS_KEY}" \
-            -H "x-amz-security-token: ${AWS_SESSION_TOKEN}" \
-            -H "Accept: application/json, text/event-stream" \
-            -H "Content-Type: application/json" \
-            -H "MCP-Protocol-Version: 2025-03-26" \
-            --data '{"jsonrpc":"2.0","id":"issue21-search","method":"tools/call","params":{"name":"x_amz_bedrock_agentcore_search","arguments":{"query":"read-only status provider get_status"}}}' \
-            "$GATEWAY_URL"
+          python experiments/02-agentcore-gateway-policy/invoke_gateway.py \
+            --gateway-url "$GATEWAY_URL" \
+            --tool-name "$TOOL_NAME" \
+            --request-id issue21-caller-a \
+            --region "$AWS_REGION" \
+            --expect allow
+
+      - name: Configure caller B
+        uses: aws-actions/configure-aws-credentials@7474bc4690e29a8392af63c5b98e7449536d5c3a
+        with:
+          role-to-assume: arn:aws:iam::063884340510:role/github-actions-lab1-i21-b
+          aws-region: ${{ env.AWS_REGION }}
+      - name: Prove caller B identity
+        run: aws sts get-caller-identity
+      - name: Caller B must be denied
+        run: |
+          python experiments/02-agentcore-gateway-policy/invoke_gateway.py \
+            --gateway-url "$GATEWAY_URL" \
+            --tool-name "$TOOL_NAME" \
+            --request-id issue21-caller-b \
+            --region "$AWS_REGION" \
+            --expect deny
