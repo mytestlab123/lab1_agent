@@ -168,11 +168,7 @@ def run_gate(client, harness_arn: str, correlation_id: str, decision: str) -> di
         **overrides,
     )
     turn2 = consume(second["stream"])
-    passed = turn2["stop_reason"] in {
-        "end_turn",
-        "max_tokens",
-        "max_output_tokens_exceeded",
-    }
+    passed = turn2["stop_reason"] == "end_turn"
 
     return {
         "passed": passed,
