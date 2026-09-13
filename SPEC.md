@@ -7,77 +7,78 @@ Result: PASS
 
 ## Objective
 
-Prove the smallest useful Amazon Bedrock AgentCore **Gateway + Policy** governance path with one harmless Lambda-backed MCP tool, and prove that a policy DENY prevents provider execution.
+Prove the smallest useful Amazon Bedrock AgentCore Harness human-approval lifecycle using a client-side `inline_function` gate.
 
 ## Outcome
 
-Issue #15 proved:
+Issue #17 proved:
 
-`GitHub OIDC IAM caller -> AgentCore Gateway (MCP/AWS_IAM) -> Policy Engine (ENFORCE) -> ALLOW or DENY -> Lambda provider -> independent execution-count verification -> teardown`.
+```text
+request -> Harness -> typed request_approval tool_use -> PAUSE
+  REJECTED -> same-session toolResult -> end_turn
+  APPROVED -> same-session toolResult -> end_turn
+```
+
+The final proof used a harmless simulation and performed no provider mutation.
 
 ## Live verification
 
-- Gateway reached READY with MCP + AWS_IAM.
-- Lambda Gateway target reached READY.
-- Policy Engine reached ACTIVE and was attached in ENFORCE mode.
-- Exact Cedar permit allowed the controlled tool call.
-- Provider baseline count was 0.
-- ALLOW returned the deterministic Lambda result and provider count became 1.
-- An exact Cedar forbid then caused Gateway JSON-RPC error `-32002` (`Tool Execution Denied`).
-- Provider count remained 1 and the DENY request produced zero Lambda execution markers.
-- Independent AWS Core readback verified the Gateway, target, Policy Engine, active policies and execution markers.
+- PERSONAL/LAB identity and region were reverified.
+- Harness reached `READY` with stateless `memory.disabled`.
+- Final successful model: `global.amazon.nova-2-lite-v1:0`.
+- Both test cases emitted a real typed `request_approval` tool-use event.
+- Both first turns stopped with `tool_use`.
+- Matching `toolUseId` values were returned to the same sessions through `toolResult` messages.
+- REJECTED resumed to a final rejection with no additional tool call.
+- APPROVED resumed to a final approval with no additional tool call.
+- GitHub OIDC was used for the reproducible caller; no static AWS credentials were stored.
 
-## Policy analyzer learning
+## Important implementation learning
 
-Strict Cedar validation rejected the deliberately absolute forbid as **Overly Restrictive**. Because complete denial of that exact principal/action/resource tuple was the desired negative test, the test forbid was recreated with `IGNORE_ALL_FINDINGS`. Normal policy authoring should continue to use strict validation.
+### Harness HITL resume contract
 
-## IAM learning
+Resume requires two messages in the same `runtimeSessionId`:
 
-The custom Gateway execution role required:
+1. assistant re-sends the paused `toolUse` block;
+2. user supplies the matching `toolResult`.
 
-- exact `lambda:InvokeFunction` permission for the experiment Lambda;
-- `bedrock-agentcore:GetPolicyEngine` on the exact Policy Engine;
-- `bedrock-agentcore:AuthorizeAction`;
-- `bedrock-agentcore:PartiallyAuthorizeActions`.
+The typed stream is the acceptance boundary. Model prose about requesting approval is not evidence of approval enforcement.
 
-During Gateway creation, the policy authorization permission used the narrow known Gateway-name ARN pattern because the final generated Gateway ARN did not yet exist. It was tightened to the exact Gateway ARN immediately after creation.
+### Caller IAM
+
+`InvokeHarness` required the temporary GitHub OIDC caller to have both:
+
+- `bedrock-agentcore:InvokeHarness`
+- `bedrock-agentcore:InvokeAgentRuntime`
+
+scoped to the exact Harness ARN.
+
+### Execution-role trust
+
+Harness provisions managed Runtime infrastructure underneath. The temporary execution role therefore required AgentCore service trust with `aws:SourceAccount` plus an account/region AgentCore SourceArn scope broad enough for the managed child resources.
+
+### Model/account setup
+
+A Claude Sonnet 4.6 reproduction was blocked by the account-level Anthropic use-case-details requirement. That was treated as model entitlement/configuration, not as an HITL failure. Nova 2 Lite completed the proof.
 
 ## Constraints satisfied
 
-- PERSONAL/LAB identity and region reverified before mutation.
-- No `NONE` authorizer; inbound authentication was AWS_IAM/SigV4.
+- PERSONAL/LAB only.
+- No production/work resources.
 - No static AWS access keys.
-- One deterministic read-only Lambda target only.
-- No AgentCore Runtime, Cognito, frontend, VPC, database or model invocation.
+- No provider mutation in the approval proof.
+- Stateless Harness memory.
+- Explicit iterations/tokens/timeout guardrails.
 - Existing Terraform/OIDC retained resources were not modified.
-- Unrelated pre-existing AgentCore resources were not modified.
-
-## Cleanup
-
-All Issue #15 resources were deleted:
-
-- Gateway and target;
-- Policy Engine and all test policies;
-- Lambda and experiment log group;
-- Lambda execution role;
-- Gateway execution role;
-- temporary branch-scoped GitHub OIDC caller role;
-- temporary CloudFormation stack.
-
-Final AWS Core readback found no Issue #15 cloud resources.
-
-## Decisions
-
-- AgentCore Gateway: **KEEP** as a managed MCP tool boundary.
-- AgentCore Policy ENFORCE: **KEEP** as a deterministic authorization boundary.
-- AWS_IAM/SigV4: **KEEP** for AWS-internal/lab callers.
-- Cedar strict validation: **KEEP** for normal policies.
-- Human approval: **NEXT**, implemented as orchestration above Policy rather than replacing Policy.
 
 ## Next Milestone
 
-Experiment 03 — minimal **Human Approval Harness** demonstrating:
+Experiment 04 — combine the proven approval gate with the proven Gateway + Policy enforcement path:
 
-`ALLOW | DENY | APPROVAL_REQUIRED -> approve/reject`,
+```text
+human reject -> zero provider execution
+human approve + Policy DENY -> zero provider execution
+human approve + Policy ALLOW -> harmless provider executes exactly once
+```
 
-with zero provider execution on reject and AgentCore Policy remaining the final deterministic enforcement boundary.
+Human approval remains an orchestration gate; AgentCore Policy remains the final deterministic authorization boundary.
