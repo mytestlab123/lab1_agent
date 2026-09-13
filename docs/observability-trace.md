@@ -103,7 +103,7 @@ This is a useful audit pattern for a future security-remediation agent because a
 
 AWS documents that Transaction Search can take several minutes after enablement before spans are searchable. Application logs can arrive sooner and already expose the native trace ID and Policy decision. Delayed span indexing should therefore be treated as observability propagation, not as an authorization failure.
 
-## Next decision
+## Next milestone
 
 The core controls are now separately proven:
 
@@ -113,7 +113,4 @@ The core controls are now separately proven:
 - provider-side execution proof;
 - end-to-end audit correlation.
 
-The next useful milestone should avoid adding complexity for its own sake. Either:
-
-1. reintroduce Harness approval into this correlated audit chain, or
-2. map the proven pattern directly to the SecCop architecture and select the smallest adoption milestone.
+Experiment 07 should reintroduce the small Harness approval gate into this observable path and prove one full auditable chain for REJECT, APPROVE+DENY and APPROVE+ALLOW. After that, compare the resulting architecture directly with SecCop and select one adoption milestone.
