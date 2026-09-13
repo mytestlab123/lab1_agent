@@ -16,22 +16,20 @@ Status: ACTIVE
 - Cross-session AWS Core/GitHub knowledge reuse is proven.
 - Public-safe GitHub OIDC -> Terraform -> AWS deploy/drift/reconciliation is proven.
 - Pull-request Terraform validation is AWS-free and uses a committed provider lockfile.
-- Reusable environment-specific AWS knowledge remains in private `mytestlab123/chatgpt-aws`.
 - Experiment 01 proved AgentCore Runtime direct-code Python deployment with IAM/SigV4 invocation and was merged in PR #14.
-- Experiment 01 cloud resources were fully torn down; no AgentCore Runtime from that experiment is retained.
-- Experiment 02 targets AgentCore Gateway + Policy with one read-only Lambda tool and measurable ALLOW/DENY provider execution.
-- Gateway, GatewayTarget, PolicyEngine, and Lambda resource types are available in the intended LAB region.
-- The pre-existing Terraform/OIDC state bucket, deployment role, and SSM drift-proof parameter remain unchanged and out of scope.
+- Experiment 02 proved AgentCore Gateway + Policy ENFORCE with one Lambda-backed MCP tool.
+- Experiment 02 proved ALLOW caused one provider execution while DENY caused zero additional provider executions.
+- Experiment 02 cloud resources were fully torn down after verification.
+- Reusable environment-specific AWS knowledge remains in private `mytestlab123/chatgpt-aws`.
+- The pre-existing Terraform/OIDC state bucket, deployment role, and SSM drift-proof parameter remain unchanged.
 
 ## Active Work
 
-- Issue: #15 — AgentCore Gateway + Policy ALLOW/DENY proof.
-- Branch: `issue-15-agentcore-gateway-policy`.
-- Critical acceptance: DENY must result in zero provider execution.
+- Issue #15 result: PASS; branch contains the durable Experiment 02 package for final PR merge.
+- Documentation goal: publish accumulated learning through MkDocs Material + GitHub Pages.
 
 ## Next Action
 
-- Implement the deterministic Lambda/Gateway/Policy experiment.
-- Run ALLOW and DENY tests with provider execution-count evidence.
-- Independently verify and clean up all Issue #15 resources.
-- Review/merge one cohesive Issue #15 PR if the experiment passes.
+1. Merge the completed Experiment 02 package.
+2. Add MkDocs Material + GitHub Pages documentation site and convert the accumulated learning into navigable pages.
+3. Begin Experiment 03: minimal Human Approval Harness with `ALLOW | DENY | APPROVAL_REQUIRED` while retaining AgentCore Policy as the final enforcement boundary.
