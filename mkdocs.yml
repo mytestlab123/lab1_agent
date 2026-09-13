@@ -5,3 +5,7 @@ theme:
 
 plugins:
   - search
+
+nav:
+  - Home: index.md
+  - Learning Path: learning-path.md
