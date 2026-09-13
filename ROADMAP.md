@@ -16,20 +16,26 @@
   - human REJECT -> zero provider execution;
   - human APPROVE + Policy DENY -> zero provider execution;
   - human APPROVE + Policy ALLOW -> harmless provider executes exactly once.
+- Experiment 05: IAM identity-aware AgentCore Policy proof.
+- Verified two authenticated GitHub OIDC IAM callers against the same Gateway/tool:
+  - caller A matched an exact Cedar permit -> provider execution exactly once;
+  - caller B had no matching permit -> AgentCore default DENY -> provider execution zero.
+- Restored the missing retained Gateway target without adding a continuously billed workload.
 
 ## Active
 
-- Close out Issue #19 through one reviewed PR and publish the Experiment 04 learning page.
+- Close out Issue #21 through one reviewed PR and publish the Experiment 05 learning page.
 
 ## Next
 
-- Experiment 05: identity/context-aware authorization using the retained Gateway + Policy + Lambda path.
-- Keep the first version small: one additional caller/identity context and one deterministic Cedar rule that distinguishes access without changing the harmless provider.
-- Prove the decision from authenticated principal/context -> Policy -> provider marker.
+- Experiment 06: end-to-end observability and trace correlation.
+- Reuse the retained identity-aware Gateway + Policy + Lambda path.
+- Give one request a correlation ID and prove that the same request can be followed through authenticated caller identity, Gateway invocation, Policy decision and provider-side evidence.
+- Prefer existing AgentCore/CloudWatch observability before adding any new infrastructure.
 
 ## Later
 
-- AgentCore observability and end-to-end trace correlation across approval, Gateway, Policy and provider.
+- Reintroduce the proven Harness approval gate into the correlated trace if useful.
 - Multi-tool MCP catalog only after identity and traceability are proven.
 - Cognito/JWT + browser invocation only when an end-user UI is actually required.
 - Compare the retained AgentCore governance pattern with SecCop and recommend one adoption milestone only.
