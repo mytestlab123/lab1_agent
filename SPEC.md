@@ -3,97 +3,61 @@
 Status: COMPLETE
 Context: PERSONAL
 Environment: LAB
-Issue: #23
+Issue: #25
 Result: PASS
 
 ## Objective
 
-Reuse the retained Experiment 05 identity-aware AgentCore Gateway + Policy Engine + harmless Lambda provider path and prove end-to-end observability for one ALLOW request and one DENY request without changing authorization semantics.
-
-Proven path:
+Prove one auditable governance chain using the independently verified AgentCore controls:
 
 ```text
-GitHub OIDC caller
-  -> AgentCore Gateway
-     -> AgentCore Policy decision
-        -> provider execution when allowed
-           -> CloudWatch / X-Ray correlation evidence
+Human decision
+ -> Harness typed approval
+ -> authenticated IAM caller
+ -> AgentCore Gateway
+ -> AgentCore Policy ENFORCE
+ -> harmless provider
+ -> native audit evidence
 ```
 
 ## Acceptance result
 
-| Case | Caller | Policy | Provider | Result |
+| Case | Human | Policy | Provider | Result |
 |---|---|---|---:|---|
-| ALLOW | caller A | ALLOW | exactly 1 | PASS |
-| DENY | caller B | DENY by default | 0 | PASS |
-
-Authentication, authorization, Gateway handling and provider execution were observed as separate stages. Model/UI text alone was not accepted as evidence.
+| REJECT | REJECTED | not reached | 0 | PASS |
+| APPROVE + DENY | APPROVED | DENY by default | 0 | PASS |
+| APPROVE + ALLOW | APPROVED | ALLOW | exactly 1 | PASS |
 
 ## Live proof
 
-- GitHub Actions run `34746346691` authenticated caller A and caller B through their existing narrow GitHub OIDC roles.
-- Caller A invoked the same retained Gateway/tool and received a successful MCP response.
-- Caller B invoked the same retained Gateway/tool and received JSON-RPC `-32002` / `Tool Execution Denied` because no policy applied to that principal.
-- Native Gateway application logs carried the test correlation ID, AWS request ID, native trace ID, authenticated IAM principal, Policy decision and tool-processing events.
-- ALLOW logs showed the exact caller-A principal, a determining Cedar policy, `Executing tool`, and a successful response.
-- DENY logs showed the exact caller-B principal, `DENY`, the default-deny reason and no tool-execution event.
-- The Lambda provider log contained exactly one `issue23-observe-allow` execution marker and zero `issue23-observe-deny` markers.
-- The ALLOW Lambda X-Ray report carried the same native trace identity as the Gateway record.
-
-## Observability configuration
-
-The minimum native observability configuration was enabled for the retained Gateway:
-
-1. CloudWatch Transaction Search enabled account-wide;
-2. X-Ray trace segment destination set to `CloudWatchLogs` and verified `ACTIVE`;
-3. default Transaction Search indexing retained at 1%;
-4. Gateway `APPLICATION_LOGS` delivered to a dedicated CloudWatch Logs group with seven-day retention;
-5. Gateway `TRACES` delivered to X-Ray / Transaction Search.
-
-The reproducible Gateway delivery definition is stored in `infra/experiment06-observability.yaml`. Transaction Search is account-level configuration and is documented separately from the resource template.
-
-## Important learning
-
-### Gateway application logs are an audit bridge
-
-For this first audit proof, native Gateway vended logs were sufficient to stitch together request correlation, principal identity, Policy outcome, Gateway/tool behavior and provider execution evidence.
-
-### Authorization and execution remain separate facts
-
-A successful authentication event does not prove authorization, and an ALLOW decision does not by itself prove downstream execution. The proof required all three stages independently:
-
-```text
-STS / OIDC identity
-  -> Policy decision
-     -> provider-side execution marker
-```
-
-### DENY is observable before provider execution
-
-The DENY trace contained the caller identity and Policy reason but no `Executing tool` event and no provider marker. This makes the enforcement boundary operationally explainable after the fact.
-
-### Trace indexing is asynchronous
-
-AWS documents that Transaction Search may take several minutes after first enablement before spans become searchable. Gateway application logs arrived earlier, so delayed span indexing was not treated as an authorization failure.
-
-### Existing OIDC trust stayed narrow
-
-The retained caller roles remained trusted only for the exact existing repository branch subject. The temporary proof workflow ran from that already-authorized branch rather than widening OIDC trust solely for observability.
+- A retained Harness `lab1i25approval` ran with stateless memory and explicit iteration/token/timeout limits.
+- Per-invocation overrides used Nova 2 Lite and one client-side `request_approval` inline function.
+- Every case produced `stopReason=tool_use`, exactly one typed `request_approval`, matching same-session `toolResult`, and a successful resumed turn.
+- `issue25-human-reject` stopped at the controller boundary; exact Gateway and provider log inspection found zero matching downstream events.
+- GitHub Actions run `34748226633` executed only the two approved Gateway cases under the existing narrow Issue #21 OIDC caller roles.
+- `issue25-approve-deny` correlated to caller B, Policy default DENY, no `Executing tool` event, and provider count 0.
+- `issue25-approve-allow` correlated to caller A, Policy ALLOW, the determining Cedar policy, tool execution, and exactly one provider marker.
 
 ## Guardrails satisfied
 
 - PERSONAL/LAB only in `ap-southeast-1`.
 - STS identity reverified before AWS mutation.
-- AgentCore Policy remained `ENFORCE`.
-- Caller A permit and caller B default-deny semantics were unchanged.
-- No OIDC trust or Gateway execution permission was broadened for telemetry.
 - No static AWS credentials.
-- No EC2, NAT Gateway, load balancer, database, VPC, frontend, always-running container or provisioned capacity was introduced.
+- Existing OIDC trust was not widened for this proof.
+- AgentCore Policy remained `ENFORCE` and the final deterministic execution boundary.
+- Human REJECT stopped before Gateway.
+- Human APPROVE did not bypass Policy.
+- Provider execution was independently verified from provider-side logs.
+- No EC2, NAT Gateway, load balancer, RDS/Aurora, VPC, frontend, Cognito, always-running container or provisioned capacity was introduced.
 
 ## Retention
 
-The new retained resources are low-cost/usage-priced observability components: Gateway log/trace delivery, a seven-day CloudWatch application-log group and account-level Transaction Search configuration. They remain within the repository's existing low-cost lab rule.
+The Experiment 07 Harness and previously retained Gateway, Policy, Lambda, caller roles and observability resources remain because they are low-cost/usage-priced and within the lab retention rule.
 
 ## Durable output
 
-Experiment 06 learning is recorded under `experiments/06-agentcore-observability/`, published in `docs/observability-trace.md`, and represented by the reproducible observability template in `infra/experiment06-observability.yaml`.
+Experiment 07 evidence is stored under `experiments/07-agentcore-auditable-approval/` and published through the MkDocs learning site.
+
+## Next
+
+Do not add AgentCore features by default. Compare this proven governance chain with SecCop and select one practical adoption milestone.

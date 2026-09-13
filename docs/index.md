@@ -12,25 +12,25 @@ Public learning notes from small, verified AWS and Amazon Bedrock AgentCore expe
 - Experiment 04 — integrated approval + Gateway + Policy: **PASS**
 - Experiment 05 — IAM identity-aware Policy: **PASS**
 - Experiment 06 — native observability correlation: **PASS**
+- Experiment 07 — full-chain auditable human approval: **PASS**
 
-## Governance results
+## Final governance matrix
 
-Experiment 04 proved the human-approval governance chain:
+| Human | Policy | Provider |
+|---|---|---:|
+| REJECT | not reached | 0 |
+| APPROVE | DENY | 0 |
+| APPROVE | ALLOW | exactly 1 |
 
-- Human REJECT -> provider executions = 0.
-- Human APPROVE + Policy DENY -> provider executions = 0.
-- Human APPROVE + Policy ALLOW -> provider executions = exactly 1.
+Experiment 07 combines the controls proven in earlier milestones:
 
-Experiment 05 then proved authenticated identity matters independently of the requested tool:
+- real typed Harness `request_approval` pause/resume;
+- authenticated GitHub OIDC IAM principal;
+- AgentCore Gateway tool routing;
+- deterministic AgentCore Policy ENFORCE;
+- provider-side execution marker;
+- native Gateway/CloudWatch audit correlation.
 
-- caller A -> exact Cedar permit -> provider executions = exactly 1;
-- caller B -> no matching permit -> default Policy DENY -> provider executions = 0.
+The central lesson is that **human approval, authentication, authorization, and execution are separate facts**. Approval does not override Cedar Policy.
 
-Experiment 06 made those decisions operationally explainable after the fact:
-
-- native Gateway logs correlate request ID, trace ID, IAM principal and Policy decision;
-- ALLOW correlates to tool execution and exactly one provider marker;
-- DENY records the principal and denial reason with no downstream provider execution;
-- the ALLOW Lambda X-Ray report carries the same trace identity as the Gateway record.
-
-See `integrated-governance.md`, `identity-aware-policy.md` and `observability-trace.md` for the verified evidence and implementation learning.
+See `auditable-approval.md` for the complete Experiment 07 result. Earlier pages document each control separately.

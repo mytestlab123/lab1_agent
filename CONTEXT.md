@@ -6,60 +6,58 @@ Status: ACTIVE
 
 - Project: ChatGPT AWS Consumer Lab
 - Primary Repository: `mytestlab123/lab1_agent`
-- Authorized Related Repository: `mytestlab123/chatgpt-aws` (read as reusable AWS knowledge source)
+- Authorized Related Repository: `mytestlab123/chatgpt-aws`
 - Context: PERSONAL
 - Environment: LAB
 
 ## Current Truth
 
-- This repository is public and unarchived.
-- Cross-session AWS Core/GitHub knowledge reuse is proven.
-- Public-safe GitHub OIDC -> Terraform -> AWS deploy/drift/reconciliation is proven.
-- Pull-request Terraform validation is AWS-free and uses a committed provider lockfile.
-- Experiment 01 proved AgentCore Runtime direct-code Python deployment with IAM/SigV4 invocation.
-- Experiment 02 proved AgentCore Gateway + Policy ENFORCE with one Lambda-backed MCP tool: ALLOW executed once; DENY added zero provider executions.
-- Experiment 03 proved AgentCore Harness human approval with a real typed `request_approval` `tool_use` pause and same-session REJECTED/APPROVED resume paths.
-- Experiment 04 proved the complete governance chain: human REJECT -> zero provider executions; human APPROVE + Policy DENY -> zero provider executions; human APPROVE + Policy ALLOW -> exactly one provider execution.
-- Experiment 05 proved IAM identity-aware AgentCore Policy: caller A -> ALLOW -> exactly one provider execution; caller B -> default DENY -> zero provider executions.
-- Experiment 06 proved end-to-end operational correlation across authenticated caller identity -> Gateway -> Policy -> provider execution using native AgentCore/CloudWatch evidence.
-- GitHub Pages is live through MkDocs Material at `https://mytestlab123.github.io/lab1_agent/`.
-- Reusable environment-specific AWS knowledge remains in private `mytestlab123/chatgpt-aws`.
-- The pre-existing Terraform/OIDC state bucket, deployment role, and SSM drift-proof parameter remain unchanged.
+- Repository is public; MkDocs Material GitHub Pages is live.
+- Public-safe GitHub OIDC -> Terraform -> AWS drift/reconciliation is proven.
+- Experiment 01: AgentCore Runtime direct-code + IAM/SigV4 — PASS.
+- Experiment 02: Gateway + Policy ALLOW/DENY — PASS.
+- Experiment 03: typed Harness human approval pause/resume — PASS.
+- Experiment 04: integrated approval + Gateway + Policy matrix — PASS.
+- Experiment 05: IAM identity-aware Policy — PASS.
+- Experiment 06: native audit correlation across identity -> Gateway -> Policy -> provider — PASS.
+- Experiment 07: full auditable chain from typed human approval through authenticated caller, Policy ENFORCE and provider evidence — PASS.
 
-## Retained AWS Lab Resources
+## Experiment 07 Result
 
-Useful resources with negligible idle cost are intentionally retained for reuse.
+| Human | Policy | Provider |
+|---|---|---:|
+| REJECT | not reached | 0 |
+| APPROVE | DENY by default | 0 |
+| APPROVE | ALLOW | exactly 1 |
 
-Current reusable AgentCore path includes:
+- All three Harness cases emitted a real typed `request_approval` pause and same-session resume.
+- `issue25-human-reject` has no downstream Gateway event and no provider marker.
+- GitHub Actions run `34748226633` proved the approved DENY and ALLOW Gateway cases using the existing narrow Issue #21 OIDC identities.
+- Native Gateway logs record caller identity, Policy result, trace IDs and tool-processing state.
+- Approval does not override Cedar; Policy remains the final deterministic execution boundary.
 
-- AgentCore Gateway with Policy ENFORCE;
-- Lambda-backed Gateway target;
-- AgentCore Policy Engine, the earlier Experiment 04 policy, and the exact Experiment 05 caller A permit;
-- harmless Lambda provider + small provider log footprint;
-- narrowly scoped GitHub OIDC IAM caller roles;
-- CloudFormation stacks used to provision the retained low-cost resources;
-- Gateway `APPLICATION_LOGS` delivery to a seven-day CloudWatch log group;
-- Gateway `TRACES` delivery to X-Ray / CloudWatch Transaction Search;
-- account-level Transaction Search configured with the trace destination in CloudWatch Logs and 1% indexing.
+## Retained Low-Cost Lab Resources
 
-The Experiment 04 Harness had already been deleted before the retention-policy change and is not recreated only for retention.
+- AgentCore Gateway + Lambda target + harmless provider.
+- Policy Engine and exact caller-A permit.
+- Narrow GitHub OIDC caller roles.
+- Gateway application logs/traces + Transaction Search.
+- Experiment 07 Harness `lab1i25approval`, stateless with explicit execution limits.
 
-Cost rule: retain effectively idle/usage-priced resources when expected cost remains comfortably below about USD 2/month per item and below roughly USD 5/month for the retained lab footprint. Review continuously billed resources separately; do not leave EC2, NAT Gateway, load balancers, RDS/Aurora, always-running containers, provisioned capacity, or similar cost-bearing workloads without an explicit reason.
+Retain idle/usage-priced resources when expected cost remains comfortably below about USD 2/month per item and roughly USD 5/month for the retained lab footprint. Continuously billed workloads require an explicit retain/delete decision.
 
 ## Documentation
 
-- MkDocs Material build/deploy: PASS.
-- GitHub Pages: live.
-- Experiments 01-06 are documented as verified learning milestones.
-- Experiment 06 public learning page: `docs/observability-trace.md`.
+- GitHub Pages: `https://mytestlab123.github.io/lab1_agent/`
+- Experiments 01-07 are verified learning milestones.
 
 ## Active Work
 
-- Issue #23: final PR closeout for Experiment 06.
-- Branch: `issue-23-observability-trace`.
+- Issue #25: final PR closeout for Experiment 07.
+- Branch: `issue-25-auditable-approval`.
 
 ## Next Action
 
-1. Merge Experiment 06 evidence/docs and close Issue #23.
-2. Reintroduce the proven Harness approval gate into the now-observable path so approval, identity, Policy and provider execution can be audited as one flow.
-3. After that, compare the proven AgentCore governance pattern with SecCop and recommend one adoption milestone.
+1. Merge Experiment 07 evidence/docs and close Issue #25.
+2. Compare the proven AgentCore governance pattern with SecCop.
+3. Select one practical adoption milestone rather than adding more AgentCore features by default.
