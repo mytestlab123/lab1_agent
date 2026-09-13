@@ -5,7 +5,18 @@ Public learning notes from small, verified AWS and Amazon Bedrock AgentCore expe
 ## Current status
 
 - MkDocs Material build: **PASS**
-- GitHub Pages artifact build/upload: **PASS**
-- Live Pages deployment: waiting for repository **Settings → Pages → Source = GitHub Actions**
+- GitHub Pages deployment: **LIVE**
+- Experiment 01 — AgentCore Runtime: **PASS**
+- Experiment 02 — Gateway + Policy ALLOW/DENY: **PASS**
+- Experiment 03 — Harness human approval: **PASS**
+- Experiment 04 — integrated approval + Gateway + Policy: **PASS**
 
-Once that one repository setting is enabled, the existing `Documentation Pages` workflow can publish this site.
+## Core governance result
+
+Experiment 04 proved all three required outcomes with independent provider evidence:
+
+- Human REJECT -> provider executions = 0.
+- Human APPROVE + Policy DENY -> provider executions = 0.
+- Human APPROVE + Policy ALLOW -> provider executions = exactly 1.
+
+See `integrated-governance.md` for the full Experiment 04 result and retained-resource policy.

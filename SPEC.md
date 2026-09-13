@@ -3,82 +3,68 @@
 Status: COMPLETE
 Context: PERSONAL
 Environment: LAB
+Issue: #19
 Result: PASS
 
 ## Objective
 
-Prove the smallest useful Amazon Bedrock AgentCore Harness human-approval lifecycle using a client-side `inline_function` gate.
+Compose the independently proven AgentCore Harness approval gate with the independently proven Gateway + Policy ENFORCE boundary and one harmless deterministic Lambda provider.
 
-## Outcome
-
-Issue #17 proved:
+Proven flow:
 
 ```text
-request -> Harness -> typed request_approval tool_use -> PAUSE
-  REJECTED -> same-session toolResult -> end_turn
-  APPROVED -> same-session toolResult -> end_turn
+Harness
+  -> request_approval
+      REJECT -> STOP / zero provider execution
+      APPROVE -> AgentCore Gateway -> AgentCore Policy
+                   DENY  -> zero provider execution
+                   ALLOW -> harmless provider executes exactly once
 ```
 
-The final proof used a harmless simulation and performed no provider mutation.
+## Acceptance result
 
-## Live verification
+All three required cases passed with independent provider-side evidence:
 
-- PERSONAL/LAB identity and region were reverified.
-- Harness reached `READY` with stateless `memory.disabled`.
-- Final successful model: `global.amazon.nova-2-lite-v1:0`.
-- Both test cases emitted a real typed `request_approval` tool-use event.
-- Both first turns stopped with `tool_use`.
-- Matching `toolUseId` values were returned to the same sessions through `toolResult` messages.
-- REJECTED resumed to a final rejection with no additional tool call.
-- APPROVED resumed to a final approval with no additional tool call.
-- GitHub OIDC was used for the reproducible caller; no static AWS credentials were stored.
+| Human decision | Policy decision | Provider execution | Result |
+|---|---|---:|---|
+| REJECT | not reached | 0 | PASS |
+| APPROVE | DENY | 0 | PASS |
+| APPROVE | ALLOW | exactly 1 | PASS |
 
-## Important implementation learning
+Evidence included real typed Harness `tool_use` / `toolResult`, Gateway responses, Policy ENFORCE decisions, and independent CloudWatch provider markers. Model/UI prose alone was not accepted as evidence.
 
-### Harness HITL resume contract
+## Live proof
 
-Resume requires two messages in the same `runtimeSessionId`:
+- Human REJECT: GitHub Actions run `34741039778`; Gateway invocation steps were skipped and independent provider marker count remained 0.
+- Human APPROVE + Policy DENY: run `34741113362`; Gateway returned JSON-RPC `-32002` / `Tool Execution Denied`, naming the active forbid policy; provider marker count remained 0.
+- Human APPROVE + Policy ALLOW: run `34741189887`; Gateway returned a successful MCP result and independent provider evidence recorded exactly one `PROVIDER_EXECUTION request_id=issue19-policy-allow` marker.
+- GitHub Actions used a branch-scoped OIDC role. No static AWS access keys were stored.
+- AgentCore Policy remained `ENFORCE` and was the final deterministic authorization boundary.
 
-1. assistant re-sends the paused `toolUse` block;
-2. user supplies the matching `toolResult`.
+## AWS resource retention policy
 
-The typed stream is the acceptance boundary. Model prose about requesting approval is not evidence of approval enforcement.
+The earlier specification required teardown. The user changed that policy after the proof completed.
 
-### Caller IAM
+Current rule for this PERSONAL/LAB repository:
 
-`InvokeHarness` required the temporary GitHub OIDC caller to have both:
+- retain useful AWS lab resources whose expected idle cost is negligible and comfortably below roughly USD 2/month;
+- allow the aggregate retained lab footprint to remain when the expected total is below roughly USD 5/month;
+- do not tear down resources merely for cleanliness when they are effectively usage-priced or no-charge while idle;
+- separately review or clean up continuously billed resources such as EC2, NAT Gateway, load balancers, RDS/Aurora, continuously running containers, provisioned capacity, or other workloads with meaningful idle cost.
 
-- `bedrock-agentcore:InvokeHarness`
-- `bedrock-agentcore:InvokeAgentRuntime`
+The Issue #19 Harness had already been deleted before this retention decision and is not recreated solely to keep it. The remaining Gateway, Policy Engine/policy, harmless Lambda provider, IAM roles, CloudFormation stacks, and small logs are intentionally retained for the next lab milestone.
 
-scoped to the exact Harness ARN.
+## Guardrails satisfied
 
-### Execution-role trust
-
-Harness provisions managed Runtime infrastructure underneath. The temporary execution role therefore required AgentCore service trust with `aws:SourceAccount` plus an account/region AgentCore SourceArn scope broad enough for the managed child resources.
-
-### Model/account setup
-
-A Claude Sonnet 4.6 reproduction was blocked by the account-level Anthropic use-case-details requirement. That was treated as model entitlement/configuration, not as an HITL failure. Nova 2 Lite completed the proof.
-
-## Constraints satisfied
-
-- PERSONAL/LAB only.
-- No production/work resources.
+- PERSONAL/LAB only, `ap-southeast-1`.
+- STS identity was reverified before mutation.
 - No static AWS access keys.
-- No provider mutation in the approval proof.
-- Stateless Harness memory.
-- Explicit iterations/tokens/timeout guardrails.
-- Existing Terraform/OIDC retained resources were not modified.
+- Harness used `memory.disabled` and explicit iteration/token/timeout limits.
+- Human REJECT did not call Gateway.
+- AgentCore Policy ENFORCE remained the final deterministic execution authorization boundary.
+- Provider execution was counted independently from provider-side markers.
+- No Cognito, frontend, VPC, database, EC2, NAT Gateway, load balancer, or destructive provider operation was introduced.
 
-## Next Milestone
+## Durable output
 
-Experiment 04 — combine the proven approval gate with the proven Gateway + Policy enforcement path:
-
-```text
-human reject -> zero provider execution
-human approve + Policy DENY -> zero provider execution
-human approve + Policy ALLOW -> harmless provider executes exactly once
-```
-
-Human approval remains an orchestration gate; AgentCore Policy remains the final deterministic authorization boundary.
+Experiment 04 evidence and learning are published in `docs/integrated-governance.md` and linked from the MkDocs learning site. Retained low-cost AWS resources are reusable inputs for the next experiment rather than cleanup debt.
