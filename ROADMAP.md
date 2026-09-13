@@ -7,16 +7,21 @@
 - Public-safe Terraform pull-request validation with no AWS credentials.
 - Experiment 01: AgentCore Runtime direct-code + IAM/SigV4 proof.
 - Experiment 02: AgentCore Gateway + Policy ALLOW/DENY proof with one harmless Lambda-backed MCP tool.
-- Verified security property: `DENY` resulted in **zero provider executions**.
+- Verified security property: Policy `DENY` resulted in **zero provider executions**.
+- Experiment 03: AgentCore Harness `inline_function` human approval proof.
+- Verified a real typed `tool_use` pause plus same-session REJECTED and APPROVED resumptions.
+
+## Active
+
+- Publish accumulated learning with **MkDocs Material + GitHub Pages**. Build/artifact are ready; live deployment waits for repository Pages source = GitHub Actions.
 
 ## Next
 
-- Publish accumulated learning with **MkDocs Material + GitHub Pages**.
-- **Experiment 03 — Human Approval Harness.**
-- Demonstrate `ALLOW | DENY | APPROVAL_REQUIRED`.
-- For approval-required actions, prove:
-  - reject -> zero provider execution;
-  - approve -> request proceeds to Gateway/Policy and only executes when Policy also permits it.
+- Experiment 04: integrate the proven approval gate with Gateway + Policy.
+- Prove all three governance outcomes:
+  - human reject -> zero provider execution;
+  - human approve + Policy DENY -> zero provider execution;
+  - human approve + Policy ALLOW -> harmless provider executes exactly once.
 
 ## Later
 
