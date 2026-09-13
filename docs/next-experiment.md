@@ -1,33 +1,52 @@
-# Human Approval Harness — Current Learning
+# AgentCore Harness Human Approval
 
-Status: **PARTIAL**
+Status: **PASS**
 
-A real AgentCore Harness was created and reached `READY`. Model invocation through the managed Harness also worked.
-
-The intended approval architecture is:
+A real AgentCore Harness produced a typed `request_approval` `tool_use` event and paused. The same session was then resumed with a matching `toolResult` for both human decisions.
 
 ```text
-request -> Harness -> inline_function approval event -> human decision
-reject  -> zero downstream execution
-approve -> resume -> controlled downstream path
+request -> Harness -> request_approval tool_use -> PAUSE
+  reject  -> resume -> final rejection
+  approve -> resume -> final approval
 ```
 
-## What we learned
+The proof used a harmless `DEMO_CHANGE` simulation and performed no provider mutation.
 
-- Harness is materially easier to deploy than a custom Runtime loop: model, tools and limits are configuration.
-- A stateless Harness can disable managed memory for a narrow lab.
-- The managed Harness provisions Runtime infrastructure underneath, which matters when scoping its execution-role trust policy.
-- `inline_function` is the right AWS primitive for a client-side approval interrupt.
-- The acceptance test must inspect the typed stream and require a real `tool_use` event. Text such as “I will request approval” is **not** an approval control.
+## What matters
 
-## Current blocker
+- Approval is a typed execution boundary, not model prose.
+- `toolUseId` must be preserved across pause/resume.
+- Resume uses the same `runtimeSessionId`.
+- The caller re-sends the assistant `toolUse` and supplies a user `toolResult` with the same ID.
+- Both reject and approve paths ended cleanly with `end_turn`.
+- Nova 2 Lite completed the final proof.
 
-In the live lab, bounded tests with Nova Micro, Nova Lite, Nova 2 Lite and Claude Haiku 4.5 generated prose or simulated function-call text instead of a typed Harness `tool_use` event. A final per-invocation inline-tool override also did not produce the required stream.
+## Next experiment
 
-Therefore HITL approval is **not yet claimed as proven**.
+Connect this proven approval gate to the already-proven Gateway + Policy path:
 
-## Next retry
+```text
+Harness
+  |
+  v
+request_approval
+  |
+  +-- reject --> STOP / zero provider execution
+  |
+  +-- approve
+        |
+        v
+   AgentCore Gateway
+        |
+        v
+   AgentCore Policy
+      /     \
+   DENY     ALLOW
+    |         |
+ zero       provider
+execution   executes once
+```
 
-Use the official AgentCore CLI/TUI or an AWS-published Harness HITL sample with the same inline-function schema. Capture the expected working `tool_use` stream first, then compare that configuration directly with the SDK-created Harness.
+The important design rule is unchanged: **human approval decides whether the request may continue; AgentCore Policy remains the final deterministic authorization boundary at execution time.**
 
 Detailed evidence: `experiments/03-agentcore-harness-approval/`.
