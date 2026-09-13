@@ -20,37 +20,40 @@ Status: ACTIVE
 - Experiment 02 proved AgentCore Gateway + Policy ENFORCE with one Lambda-backed MCP tool: ALLOW executed once; DENY added zero provider executions.
 - Experiment 03 proved AgentCore Harness human approval with a real typed `request_approval` `tool_use` pause and same-session REJECTED/APPROVED resume paths.
 - Experiment 04 proved the complete governance chain: human REJECT -> zero provider executions; human APPROVE + Policy DENY -> zero provider executions; human APPROVE + Policy ALLOW -> exactly one provider execution.
+- Experiment 05 proved IAM identity-aware AgentCore Policy: caller A -> ALLOW -> exactly one provider execution; caller B -> default DENY -> zero provider executions.
 - GitHub Pages is live through MkDocs Material at `https://mytestlab123.github.io/lab1_agent/`.
 - Reusable environment-specific AWS knowledge remains in private `mytestlab123/chatgpt-aws`.
 - The pre-existing Terraform/OIDC state bucket, deployment role, and SSM drift-proof parameter remain unchanged.
 
-## Retained Issue #19 AWS Lab Resources
+## Retained AWS Lab Resources
 
-The cleanup policy changed after the proof completed. Useful resources with negligible idle cost are intentionally retained for reuse rather than deleted.
+Useful resources with negligible idle cost are intentionally retained for reuse.
 
-Currently retained from Experiment 04 include:
+Current reusable AgentCore path includes:
 
-- AgentCore Gateway + Lambda target;
-- AgentCore Policy Engine + exact permit policy;
+- AgentCore Gateway with Policy ENFORCE;
+- restored Lambda-backed Gateway target used by Experiment 05;
+- AgentCore Policy Engine, the earlier Experiment 04 policy, and the exact Experiment 05 caller A permit;
 - harmless Lambda provider + small CloudWatch log footprint;
-- temporary/lab IAM roles and CloudFormation stacks used to provision those resources.
+- narrowly scoped GitHub OIDC IAM caller roles for the identity proof;
+- CloudFormation stacks used to provision the retained low-cost resources.
 
-The Experiment 04 Harness had already been deleted before the retention-policy change and is not recreated just for retention.
+The Experiment 04 Harness had already been deleted before the retention-policy change and is not recreated only for retention.
 
 Cost rule: retain effectively idle/usage-priced resources when expected cost remains comfortably below about USD 2/month per item and below roughly USD 5/month for the retained lab footprint. Review continuously billed resources separately; do not leave EC2, NAT Gateway, load balancers, RDS/Aurora, always-running containers, provisioned capacity, or similar cost-bearing workloads without an explicit reason.
 
 ## Documentation
 
-- MkDocs Material build: PASS.
-- GitHub Pages deployment: PASS and live.
-- Experiment 04 learning is being added in Issue #19 finalization.
+- MkDocs Material build/deploy: PASS.
+- GitHub Pages: live.
+- Experiments 01-05 are documented as verified learning milestones.
 
 ## Active Work
 
-- Issue #19: final documentation/PR closeout for Experiment 04.
+- Issue #21: final documentation/PR closeout for Experiment 05.
 
 ## Next Action
 
-1. Merge Experiment 04 evidence/docs and close Issue #19.
-2. Reuse the retained Gateway/Policy/Lambda path for the next bounded learning milestone.
-3. Next recommended experiment: add identity/context-aware authorization, then trace the decision end to end.
+1. Merge Experiment 05 evidence/docs and close Issue #21.
+2. Reuse the retained identity-aware Gateway/Policy/provider path for end-to-end observability.
+3. Next recommended experiment: correlate one request across caller identity -> Gateway -> Policy -> provider logs/traces.

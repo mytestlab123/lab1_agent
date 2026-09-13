@@ -3,68 +3,76 @@
 Status: COMPLETE
 Context: PERSONAL
 Environment: LAB
-Issue: #19
+Issue: #21
 Result: PASS
 
 ## Objective
 
-Compose the independently proven AgentCore Harness approval gate with the independently proven Gateway + Policy ENFORCE boundary and one harmless deterministic Lambda provider.
+Reuse the retained AgentCore Gateway + Policy Engine + harmless Lambda provider and prove deterministic authorization from authenticated IAM caller identity.
 
 Proven flow:
 
 ```text
-Harness
-  -> request_approval
-      REJECT -> STOP / zero provider execution
-      APPROVE -> AgentCore Gateway -> AgentCore Policy
-                   DENY  -> zero provider execution
-                   ALLOW -> harmless provider executes exactly once
+GitHub OIDC caller A -> Gateway -> Policy -> ALLOW -> provider executes exactly once
+GitHub OIDC caller B -> Gateway -> Policy -> DENY  -> provider executes zero times
 ```
 
 ## Acceptance result
 
-All three required cases passed with independent provider-side evidence:
-
-| Human decision | Policy decision | Provider execution | Result |
+| Caller | Policy decision | Provider execution | Result |
 |---|---|---:|---|
-| REJECT | not reached | 0 | PASS |
-| APPROVE | DENY | 0 | PASS |
-| APPROVE | ALLOW | exactly 1 | PASS |
+| caller A | ALLOW | exactly 1 | PASS |
+| caller B | DENY by default | 0 | PASS |
 
-Evidence included real typed Harness `tool_use` / `toolResult`, Gateway responses, Policy ENFORCE decisions, and independent CloudWatch provider markers. Model/UI prose alone was not accepted as evidence.
+Authorization was attributable to authenticated IAM identity, not model/UI text. Provider execution was independently verified from provider-side CloudWatch markers.
 
 ## Live proof
 
-- Human REJECT: GitHub Actions run `34741039778`; Gateway invocation steps were skipped and independent provider marker count remained 0.
-- Human APPROVE + Policy DENY: run `34741113362`; Gateway returned JSON-RPC `-32002` / `Tool Execution Denied`, naming the active forbid policy; provider marker count remained 0.
-- Human APPROVE + Policy ALLOW: run `34741189887`; Gateway returned a successful MCP result and independent provider evidence recorded exactly one `PROVIDER_EXECUTION request_id=issue19-policy-allow` marker.
-- GitHub Actions used a branch-scoped OIDC role. No static AWS access keys were stored.
-- AgentCore Policy remained `ENFORCE` and was the final deterministic authorization boundary.
+- GitHub Actions run `34743717610` authenticated two different branch-scoped OIDC IAM roles in the same workflow.
+- Caller A assumed the dedicated allow role and invoked the retained Gateway successfully.
+- Caller A matched an exact Cedar permit for its assumed-role identity, the exact restored tool action, and the exact retained Gateway.
+- Caller B assumed a different dedicated role and had no matching permit.
+- AgentCore Policy returned JSON-RPC `-32002` with `Tool Execution Denied` and `No policy applies to the request (denied by default)` for caller B.
+- AWS Core independently verified one provider marker for `issue21-caller-a` and zero provider markers for `issue21-caller-b`.
+- No static AWS credentials were stored.
 
-## AWS resource retention policy
+## Important learning
 
-The earlier specification required teardown. The user changed that policy after the proof completed.
+### Retained resource does not always mean retained dependency
 
-Current rule for this PERSONAL/LAB repository:
+The retained Gateway was still `READY`, but its Lambda target was absent. Before restoration:
 
-- retain useful AWS lab resources whose expected idle cost is negligible and comfortably below roughly USD 2/month;
-- allow the aggregate retained lab footprint to remain when the expected total is below roughly USD 5/month;
-- do not tear down resources merely for cleanliness when they are effectively usage-priced or no-charge while idle;
-- separately review or clean up continuously billed resources such as EC2, NAT Gateway, load balancers, RDS/Aurora, continuously running containers, provisioned capacity, or other workloads with meaningful idle cost.
+- direct invocation of the old tool name returned `Unknown tool`;
+- `tools/list` exposed only the built-in semantic-search helper;
+- semantic search reported that no targets were configured.
 
-The Issue #19 Harness had already been deleted before this retention decision and is not recreated solely to keep it. The remaining Gateway, Policy Engine/policy, harmless Lambda provider, IAM roles, CloudFormation stacks, and small logs are intentionally retained for the next lab milestone.
+The existing Lambda provider was still present, so the lab restored only the missing Gateway target. No new continuously billed workload was introduced.
+
+### Semantic-search Gateway behavior
+
+The retained Gateway uses semantic search. `tools/list` therefore exposes the built-in `x_amz_bedrock_agentcore_search` helper instead of enumerating every provider tool directly. After the target was restored, that helper resolved the real tool name used by the proof.
+
+### Policy schema drift is detectable
+
+The pre-existing Experiment 04 permit referenced the previous target/action and was reported by the current AgentCore policy analyzer as not matching the most recent tool input schema. The new Issue #21 caller A permit passed validation only after the current target/tool schema existed, then was tightened to the exact current action.
+
+### Default deny is sufficient for caller B
+
+Caller B required no explicit `forbid` rule. With Policy ENFORCE enabled and no matching permit for caller B, AgentCore denied the request by default before provider execution.
 
 ## Guardrails satisfied
 
-- PERSONAL/LAB only, `ap-southeast-1`.
+- PERSONAL/LAB only in `ap-southeast-1`.
 - STS identity was reverified before mutation.
-- No static AWS access keys.
-- Harness used `memory.disabled` and explicit iteration/token/timeout limits.
-- Human REJECT did not call Gateway.
-- AgentCore Policy ENFORCE remained the final deterministic execution authorization boundary.
-- Provider execution was counted independently from provider-side markers.
-- No Cognito, frontend, VPC, database, EC2, NAT Gateway, load balancer, or destructive provider operation was introduced.
+- AgentCore Policy stayed in ENFORCE mode.
+- Both GitHub OIDC roles trust only the exact repository identity and Issue #21 branch subject.
+- Both roles can invoke only the retained Gateway required by this proof.
+- No Cognito, frontend, VPC, database, EC2, NAT Gateway, load balancer, always-running container, provisioned capacity or destructive provider operation was introduced.
+
+## Retention
+
+Useful near-zero/usage-priced resources are intentionally retained under the lab cost rule. This includes the restored Gateway target, the caller A identity permit, and the two narrowly scoped OIDC caller roles. Continuously billed workloads still require a separate explicit decision.
 
 ## Durable output
 
-Experiment 04 evidence and learning are published in `docs/integrated-governance.md` and linked from the MkDocs learning site. Retained low-cost AWS resources are reusable inputs for the next experiment rather than cleanup debt.
+Experiment 05 learning is recorded under `experiments/05-agentcore-identity/` and `docs/identity-aware-policy.md`, and is published through the MkDocs/GitHub Pages learning site.

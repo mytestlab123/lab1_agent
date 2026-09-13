@@ -1,24 +1,37 @@
-# Next Experiment — Compose Human Approval with Gateway + Policy
+# Next Experiment — End-to-End Observability
 
 Status: **NEXT**
 
-The lab has independently proven:
+The lab has now proven:
 
 1. AgentCore Runtime deployment and invocation.
-2. AgentCore Gateway + Policy deterministic ALLOW/DENY, including provider-side proof that DENY caused zero provider executions.
-3. AgentCore Harness `inline_function` human approval with a real typed `tool_use` pause and same-session APPROVED / REJECTED resume.
+2. Gateway + Policy deterministic ALLOW/DENY.
+3. Harness human approval with a real typed pause/resume lifecycle.
+4. Integrated approval -> Gateway -> Policy -> provider governance.
+5. IAM identity-aware Policy: the same Gateway/tool behaves differently for two authenticated callers.
 
-The next milestone composes those controls into one governance chain:
+## Next milestone
+
+Trace one request end to end without changing the authorization model:
 
 ```text
-Harness
-  -> request_approval
-      REJECT -> stop / zero provider execution
-      APPROVE -> AgentCore Gateway -> AgentCore Policy
-                   DENY  -> zero provider execution
-                   ALLOW -> harmless provider executes exactly once
+GitHub OIDC caller
+   -> AgentCore Gateway
+      -> AgentCore Policy decision
+         -> Lambda provider
+            -> CloudWatch / AgentCore observability
 ```
 
-Acceptance requires independent provider-side execution markers. Model/UI text is not sufficient evidence.
+Use one correlation/request ID and prove where it can be observed at each boundary.
 
-Tracked in GitHub Issue #19.
+## Acceptance idea
+
+- identify the authenticated caller;
+- capture the Gateway request/correlation identifier;
+- capture the Policy ALLOW or DENY decision where AWS exposes it;
+- correlate an ALLOW request to exactly one provider marker;
+- correlate a DENY request to zero provider markers;
+- prefer existing AgentCore/CloudWatch telemetry before creating new infrastructure;
+- keep retained cost within the lab's low-cost boundary.
+
+This should be Experiment 06. After that, decide whether to reintroduce Harness approval into the correlated trace or compare the proven pattern directly with SecCop.
