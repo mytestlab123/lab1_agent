@@ -1,0 +1,105 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Minimal low-cost observability delivery for the retained AgentCore Gateway.
+
+# Prerequisite: CloudWatch Transaction Search must already be ACTIVE with
+# X-Ray trace segment destination set to CloudWatchLogs. The account-level
+# Transaction Search setup is documented in Experiment 06 because it has no
+# direct CloudFormation resource.
+
+Parameters:
+  GatewayArn:
+    Type: String
+    Description: ARN of the retained AgentCore Gateway.
+  GatewayId:
+    Type: String
+    Description: ID of the retained AgentCore Gateway.
+
+Resources:
+  GatewayApplicationLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/vendedlogs/bedrock-agentcore/gateway/APPLICATION_LOGS/${GatewayId}'
+      RetentionInDays: 7
+      Tags:
+        - Key: project
+          Value: lab1-agent
+        - Key: experiment
+          Value: '06'
+
+  GatewayApplicationLogSource:
+    Type: AWS::Logs::DeliverySource
+    Properties:
+      Name: lab1-i23-gateway-application
+      LogType: APPLICATION_LOGS
+      ResourceArn: !Ref GatewayArn
+      Tags:
+        - Key: project
+          Value: lab1-agent
+        - Key: experiment
+          Value: '06'
+
+  GatewayApplicationLogDestination:
+    Type: AWS::Logs::DeliveryDestination
+    Properties:
+      Name: lab1-i23-gateway-application-cwl
+      DeliveryDestinationType: CWL
+      DestinationResourceArn: !GetAtt GatewayApplicationLogGroup.Arn
+      OutputFormat: json
+      Tags:
+        - Key: project
+          Value: lab1-agent
+        - Key: experiment
+          Value: '06'
+
+  GatewayApplicationLogDelivery:
+    Type: AWS::Logs::Delivery
+    Properties:
+      DeliverySourceName: !Ref GatewayApplicationLogSource
+      DeliveryDestinationArn: !GetAtt GatewayApplicationLogDestination.Arn
+      Tags:
+        - Key: project
+          Value: lab1-agent
+        - Key: experiment
+          Value: '06'
+
+  GatewayTraceSource:
+    Type: AWS::Logs::DeliverySource
+    Properties:
+      Name: lab1-i23-gateway-traces
+      LogType: TRACES
+      ResourceArn: !Ref GatewayArn
+      Tags:
+        - Key: project
+          Value: lab1-agent
+        - Key: experiment
+          Value: '06'
+
+  GatewayTraceDestination:
+    Type: AWS::Logs::DeliveryDestination
+    Properties:
+      Name: lab1-i23-gateway-traces-xray
+      DeliveryDestinationType: XRAY
+      Tags:
+        - Key: project
+          Value: lab1-agent
+        - Key: experiment
+          Value: '06'
+
+  GatewayTraceDelivery:
+    Type: AWS::Logs::Delivery
+    Properties:
+      DeliverySourceName: !Ref GatewayTraceSource
+      DeliveryDestinationArn: !GetAtt GatewayTraceDestination.Arn
+      Tags:
+        - Key: project
+          Value: lab1-agent
+        - Key: experiment
+          Value: '06'
+
+Outputs:
+  GatewayApplicationLogGroupName:
+    Value: !Ref GatewayApplicationLogGroup
+  GatewayApplicationLogSourceName:
+    Value: !Ref GatewayApplicationLogSource
+  GatewayTraceSourceName:
+    Value: !Ref GatewayTraceSource

@@ -1,4 +1,4 @@
-# Next Experiment — End-to-End Observability
+# Next Experiment — Full-Chain Auditable Approval
 
 Status: **NEXT**
 
@@ -9,29 +9,40 @@ The lab has now proven:
 3. Harness human approval with a real typed pause/resume lifecycle.
 4. Integrated approval -> Gateway -> Policy -> provider governance.
 5. IAM identity-aware Policy: the same Gateway/tool behaves differently for two authenticated callers.
+6. Native AgentCore/CloudWatch observability: caller identity, Gateway trace, Policy decision and provider execution can be correlated after the fact.
 
 ## Next milestone
 
-Trace one request end to end without changing the authorization model:
+Combine the approval proof with the observable identity-aware execution path:
 
 ```text
-GitHub OIDC caller
-   -> AgentCore Gateway
-      -> AgentCore Policy decision
-         -> Lambda provider
-            -> CloudWatch / AgentCore observability
+Human decision
+   -> Harness approval gate
+      -> authenticated controller/caller
+         -> AgentCore Gateway
+            -> AgentCore Policy
+               -> Lambda provider
+                  -> CloudWatch / trace evidence
 ```
 
-Use one correlation/request ID and prove where it can be observed at each boundary.
+The purpose is not another UI or model experiment. The purpose is one auditable governance chain showing exactly where a request stopped or executed.
 
 ## Acceptance idea
 
-- identify the authenticated caller;
-- capture the Gateway request/correlation identifier;
-- capture the Policy ALLOW or DENY decision where AWS exposes it;
-- correlate an ALLOW request to exactly one provider marker;
-- correlate a DENY request to zero provider markers;
-- prefer existing AgentCore/CloudWatch telemetry before creating new infrastructure;
-- keep retained cost within the lab's low-cost boundary.
+| Case | Expected audit result |
+|---|---|
+| REJECT | approval event recorded; Gateway/provider not reached |
+| APPROVE + DENY | approval recorded; caller + Gateway + Policy DENY correlated; provider 0 |
+| APPROVE + ALLOW | approval recorded; caller + Gateway + Policy ALLOW correlated; provider exactly 1 |
 
-This should be Experiment 06. After that, decide whether to reintroduce Harness approval into the correlated trace or compare the proven pattern directly with SecCop.
+Requirements:
+
+- use real typed Harness approval events, not model prose;
+- keep AgentCore Policy as the final deterministic execution boundary;
+- preserve narrow GitHub OIDC trust;
+- reuse the retained Gateway, Policy Engine, target, caller identities and provider where possible;
+- reuse native observability rather than add a separate tracing platform;
+- no EC2, NAT Gateway, database, load balancer or continuously billed workload;
+- document the final audit chain in MkDocs/GitHub Pages.
+
+After this proof, compare the architecture directly with SecCop and choose one adoption milestone rather than continuing to add AgentCore features for their own sake.

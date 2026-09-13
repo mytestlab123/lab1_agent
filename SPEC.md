@@ -3,76 +3,97 @@
 Status: COMPLETE
 Context: PERSONAL
 Environment: LAB
-Issue: #21
+Issue: #23
 Result: PASS
 
 ## Objective
 
-Reuse the retained AgentCore Gateway + Policy Engine + harmless Lambda provider and prove deterministic authorization from authenticated IAM caller identity.
+Reuse the retained Experiment 05 identity-aware AgentCore Gateway + Policy Engine + harmless Lambda provider path and prove end-to-end observability for one ALLOW request and one DENY request without changing authorization semantics.
 
-Proven flow:
+Proven path:
 
 ```text
-GitHub OIDC caller A -> Gateway -> Policy -> ALLOW -> provider executes exactly once
-GitHub OIDC caller B -> Gateway -> Policy -> DENY  -> provider executes zero times
+GitHub OIDC caller
+  -> AgentCore Gateway
+     -> AgentCore Policy decision
+        -> provider execution when allowed
+           -> CloudWatch / X-Ray correlation evidence
 ```
 
 ## Acceptance result
 
-| Caller | Policy decision | Provider execution | Result |
-|---|---|---:|---|
-| caller A | ALLOW | exactly 1 | PASS |
-| caller B | DENY by default | 0 | PASS |
+| Case | Caller | Policy | Provider | Result |
+|---|---|---|---:|---|
+| ALLOW | caller A | ALLOW | exactly 1 | PASS |
+| DENY | caller B | DENY by default | 0 | PASS |
 
-Authorization was attributable to authenticated IAM identity, not model/UI text. Provider execution was independently verified from provider-side CloudWatch markers.
+Authentication, authorization, Gateway handling and provider execution were observed as separate stages. Model/UI text alone was not accepted as evidence.
 
 ## Live proof
 
-- GitHub Actions run `34743717610` authenticated two different branch-scoped OIDC IAM roles in the same workflow.
-- Caller A assumed the dedicated allow role and invoked the retained Gateway successfully.
-- Caller A matched an exact Cedar permit for its assumed-role identity, the exact restored tool action, and the exact retained Gateway.
-- Caller B assumed a different dedicated role and had no matching permit.
-- AgentCore Policy returned JSON-RPC `-32002` with `Tool Execution Denied` and `No policy applies to the request (denied by default)` for caller B.
-- AWS Core independently verified one provider marker for `issue21-caller-a` and zero provider markers for `issue21-caller-b`.
-- No static AWS credentials were stored.
+- GitHub Actions run `34746346691` authenticated caller A and caller B through their existing narrow GitHub OIDC roles.
+- Caller A invoked the same retained Gateway/tool and received a successful MCP response.
+- Caller B invoked the same retained Gateway/tool and received JSON-RPC `-32002` / `Tool Execution Denied` because no policy applied to that principal.
+- Native Gateway application logs carried the test correlation ID, AWS request ID, native trace ID, authenticated IAM principal, Policy decision and tool-processing events.
+- ALLOW logs showed the exact caller-A principal, a determining Cedar policy, `Executing tool`, and a successful response.
+- DENY logs showed the exact caller-B principal, `DENY`, the default-deny reason and no tool-execution event.
+- The Lambda provider log contained exactly one `issue23-observe-allow` execution marker and zero `issue23-observe-deny` markers.
+- The ALLOW Lambda X-Ray report carried the same native trace identity as the Gateway record.
+
+## Observability configuration
+
+The minimum native observability configuration was enabled for the retained Gateway:
+
+1. CloudWatch Transaction Search enabled account-wide;
+2. X-Ray trace segment destination set to `CloudWatchLogs` and verified `ACTIVE`;
+3. default Transaction Search indexing retained at 1%;
+4. Gateway `APPLICATION_LOGS` delivered to a dedicated CloudWatch Logs group with seven-day retention;
+5. Gateway `TRACES` delivered to X-Ray / Transaction Search.
+
+The reproducible Gateway delivery definition is stored in `infra/experiment06-observability.yaml`. Transaction Search is account-level configuration and is documented separately from the resource template.
 
 ## Important learning
 
-### Retained resource does not always mean retained dependency
+### Gateway application logs are an audit bridge
 
-The retained Gateway was still `READY`, but its Lambda target was absent. Before restoration:
+For this first audit proof, native Gateway vended logs were sufficient to stitch together request correlation, principal identity, Policy outcome, Gateway/tool behavior and provider execution evidence.
 
-- direct invocation of the old tool name returned `Unknown tool`;
-- `tools/list` exposed only the built-in semantic-search helper;
-- semantic search reported that no targets were configured.
+### Authorization and execution remain separate facts
 
-The existing Lambda provider was still present, so the lab restored only the missing Gateway target. No new continuously billed workload was introduced.
+A successful authentication event does not prove authorization, and an ALLOW decision does not by itself prove downstream execution. The proof required all three stages independently:
 
-### Semantic-search Gateway behavior
+```text
+STS / OIDC identity
+  -> Policy decision
+     -> provider-side execution marker
+```
 
-The retained Gateway uses semantic search. `tools/list` therefore exposes the built-in `x_amz_bedrock_agentcore_search` helper instead of enumerating every provider tool directly. After the target was restored, that helper resolved the real tool name used by the proof.
+### DENY is observable before provider execution
 
-### Policy schema drift is detectable
+The DENY trace contained the caller identity and Policy reason but no `Executing tool` event and no provider marker. This makes the enforcement boundary operationally explainable after the fact.
 
-The pre-existing Experiment 04 permit referenced the previous target/action and was reported by the current AgentCore policy analyzer as not matching the most recent tool input schema. The new Issue #21 caller A permit passed validation only after the current target/tool schema existed, then was tightened to the exact current action.
+### Trace indexing is asynchronous
 
-### Default deny is sufficient for caller B
+AWS documents that Transaction Search may take several minutes after first enablement before spans become searchable. Gateway application logs arrived earlier, so delayed span indexing was not treated as an authorization failure.
 
-Caller B required no explicit `forbid` rule. With Policy ENFORCE enabled and no matching permit for caller B, AgentCore denied the request by default before provider execution.
+### Existing OIDC trust stayed narrow
+
+The retained caller roles remained trusted only for the exact existing repository branch subject. The temporary proof workflow ran from that already-authorized branch rather than widening OIDC trust solely for observability.
 
 ## Guardrails satisfied
 
 - PERSONAL/LAB only in `ap-southeast-1`.
-- STS identity was reverified before mutation.
-- AgentCore Policy stayed in ENFORCE mode.
-- Both GitHub OIDC roles trust only the exact repository identity and Issue #21 branch subject.
-- Both roles can invoke only the retained Gateway required by this proof.
-- No Cognito, frontend, VPC, database, EC2, NAT Gateway, load balancer, always-running container, provisioned capacity or destructive provider operation was introduced.
+- STS identity reverified before AWS mutation.
+- AgentCore Policy remained `ENFORCE`.
+- Caller A permit and caller B default-deny semantics were unchanged.
+- No OIDC trust or Gateway execution permission was broadened for telemetry.
+- No static AWS credentials.
+- No EC2, NAT Gateway, load balancer, database, VPC, frontend, always-running container or provisioned capacity was introduced.
 
 ## Retention
 
-Useful near-zero/usage-priced resources are intentionally retained under the lab cost rule. This includes the restored Gateway target, the caller A identity permit, and the two narrowly scoped OIDC caller roles. Continuously billed workloads still require a separate explicit decision.
+The new retained resources are low-cost/usage-priced observability components: Gateway log/trace delivery, a seven-day CloudWatch application-log group and account-level Transaction Search configuration. They remain within the repository's existing low-cost lab rule.
 
 ## Durable output
 
-Experiment 05 learning is recorded under `experiments/05-agentcore-identity/` and `docs/identity-aware-policy.md`, and is published through the MkDocs/GitHub Pages learning site.
+Experiment 06 learning is recorded under `experiments/06-agentcore-observability/`, published in `docs/observability-trace.md`, and represented by the reproducible observability template in `infra/experiment06-observability.yaml`.
