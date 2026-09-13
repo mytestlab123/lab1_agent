@@ -1,52 +1,24 @@
-# AgentCore Harness Human Approval
+# Next Experiment — Compose Human Approval with Gateway + Policy
 
-Status: **PASS**
+Status: **NEXT**
 
-A real AgentCore Harness produced a typed `request_approval` `tool_use` event and paused. The same session was then resumed with a matching `toolResult` for both human decisions.
+The lab has independently proven:
 
-```text
-request -> Harness -> request_approval tool_use -> PAUSE
-  reject  -> resume -> final rejection
-  approve -> resume -> final approval
-```
+1. AgentCore Runtime deployment and invocation.
+2. AgentCore Gateway + Policy deterministic ALLOW/DENY, including provider-side proof that DENY caused zero provider executions.
+3. AgentCore Harness `inline_function` human approval with a real typed `tool_use` pause and same-session APPROVED / REJECTED resume.
 
-The proof used a harmless `DEMO_CHANGE` simulation and performed no provider mutation.
-
-## What matters
-
-- Approval is a typed execution boundary, not model prose.
-- `toolUseId` must be preserved across pause/resume.
-- Resume uses the same `runtimeSessionId`.
-- The caller re-sends the assistant `toolUse` and supplies a user `toolResult` with the same ID.
-- Both reject and approve paths ended cleanly with `end_turn`.
-- Nova 2 Lite completed the final proof.
-
-## Next experiment
-
-Connect this proven approval gate to the already-proven Gateway + Policy path:
+The next milestone composes those controls into one governance chain:
 
 ```text
 Harness
-  |
-  v
-request_approval
-  |
-  +-- reject --> STOP / zero provider execution
-  |
-  +-- approve
-        |
-        v
-   AgentCore Gateway
-        |
-        v
-   AgentCore Policy
-      /     \
-   DENY     ALLOW
-    |         |
- zero       provider
-execution   executes once
+  -> request_approval
+      REJECT -> stop / zero provider execution
+      APPROVE -> AgentCore Gateway -> AgentCore Policy
+                   DENY  -> zero provider execution
+                   ALLOW -> harmless provider executes exactly once
 ```
 
-The important design rule is unchanged: **human approval decides whether the request may continue; AgentCore Policy remains the final deterministic authorization boundary at execution time.**
+Acceptance requires independent provider-side execution markers. Model/UI text is not sufficient evidence.
 
-Detailed evidence: `experiments/03-agentcore-harness-approval/`.
+Tracked in GitHub Issue #19.
