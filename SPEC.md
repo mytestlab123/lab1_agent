@@ -1,63 +1,38 @@
 # Specification
 
-Status: COMPLETE
+Status: ACTIVE
 Context: PERSONAL
 Environment: LAB
-Issue: #25
-Result: PASS
+Issue: #28
 
 ## Objective
 
-Prove one auditable governance chain using the independently verified AgentCore controls:
+Create and retain three useful AgentCore Harness examples that Amit can test without building a product GUI:
 
-```text
-Human decision
- -> Harness typed approval
- -> authenticated IAM caller
- -> AgentCore Gateway
- -> AgentCore Policy ENFORCE
- -> harmless provider
- -> native audit evidence
-```
+1. Pasted finding explainer, no effective tools.
+2. One exact live read of the existing lab SSM parameter through a dedicated Gateway/Policy/Lambda path.
+3. Approval practice using a typed inline-function pause and same-session APPROVED/REJECTED resume. This is a simulation, not live remediation.
 
-## Acceptance result
+## Authorized scope
 
-| Case | Human | Policy | Provider | Result |
-|---|---|---|---:|---|
-| REJECT | REJECTED | not reached | 0 | PASS |
-| APPROVE + DENY | APPROVED | DENY by default | 0 | PASS |
-| APPROVE + ALLOW | APPROVED | ALLOW | exactly 1 | PASS |
+- `mytestlab123/lab1_agent` owns code, tests, documentation and PR.
+- PERSONAL/LAB `ap-southeast-1` only; fresh STS must match the documented lab identity.
+- Minimal three Harness resources plus dedicated narrowly scoped IAM, Gateway/Policy, Lambda and seven-day logs as needed.
+- Existing SSM drift-demo parameter is read-only. SecCop and all earlier lab resources remain unchanged.
+- Versioned CloudFormation/configuration is desired state. AWS Core may bootstrap this exact bounded stack; GitHub/OIDC performs independent terminal tests without static credentials.
+- Retain useful idle/usage-priced resources. No EC2, NAT, load balancer, database, public application server or provisioned capacity.
+- Explicit token, iteration, invocation timeout and idle-session limits; no scheduled traffic.
 
-## Live proof
+## Acceptance
 
-- A retained Harness `lab1i25approval` ran with stateless memory and explicit iteration/token/timeout limits.
-- Per-invocation overrides used Nova 2 Lite and one client-side `request_approval` inline function.
-- Every case produced `stopReason=tool_use`, exactly one typed `request_approval`, matching same-session `toolResult`, and a successful resumed turn.
-- `issue25-human-reject` stopped at the controller boundary; exact Gateway and provider log inspection found zero matching downstream events.
-- GitHub Actions run `34748226633` executed only the two approved Gateway cases under the existing narrow Issue #21 OIDC caller roles.
-- `issue25-approve-deny` correlated to caller B, Policy default DENY, no `Executing tool` event, and provider count 0.
-- `issue25-approve-allow` correlated to caller A, Policy ALLOW, the determining Cedar policy, tool execution, and exactly one provider marker.
+- Verify intended model, tools, IAM, memory and limits with GetHarness after READY.
+- Live invocation of all three examples with saved public-safe results.
+- Checker result matches independent SSM GetParameter, with unchanged value/version.
+- Approval practice produces exactly one expected typed tool call, validates input/toolUseId and resumes the same session to end_turn for both decisions. No mutation tool exists. Test decisions are labeled simulated.
+- AWS CLI control-plane and terminal streaming/approval tests run through GitHub OIDC. Report native AgentCore CLI separately if not exercised.
+- Provide current AWS Console/Inspector instructions. GUI testing is PASS only if an authenticated graphical interaction actually ran; otherwise document it as NOT_TESTED, not assumed.
+- Publish prompts, expected responses, CLI commands, GUI steps, sources, costs and limitations through MkDocs/GitHub Pages.
 
-## Guardrails satisfied
+## Not in scope
 
-- PERSONAL/LAB only in `ap-southeast-1`.
-- STS identity reverified before AWS mutation.
-- No static AWS credentials.
-- Existing OIDC trust was not widened for this proof.
-- AgentCore Policy remained `ENFORCE` and the final deterministic execution boundary.
-- Human REJECT stopped before Gateway.
-- Human APPROVE did not bypass Policy.
-- Provider execution was independently verified from provider-side logs.
-- No EC2, NAT Gateway, load balancer, RDS/Aurora, VPC, frontend, Cognito, always-running container or provisioned capacity was introduced.
-
-## Retention
-
-The Experiment 07 Harness and previously retained Gateway, Policy, Lambda, caller roles and observability resources remain because they are low-cost/usage-priced and within the lab retention rule.
-
-## Durable output
-
-Experiment 07 evidence is stored under `experiments/07-agentcore-auditable-approval/` and published through the MkDocs learning site.
-
-## Next
-
-Do not add AgentCore features by default. Compare this proven governance chain with SecCop and select one practical adoption milestone.
+No audit-correlation adoption change, SecCop write, remediation/reset, generic AWS tool, customer data, new scanner or dashboard. Do not claim this example suite replaces SecCop's durable jobs, single-use approval binding or production identity controls.
