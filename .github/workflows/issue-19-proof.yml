@@ -1,0 +1,11 @@
+name: Issue 19 Proof
+on:
+  push:
+    branches: [issue-19-integrated-governance]
+permissions:
+  contents: read
+jobs:
+  proof:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo ready
