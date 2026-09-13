@@ -21,6 +21,7 @@ Status: ACTIVE
 - Experiment 03 proved AgentCore Harness human approval with a real typed `request_approval` `tool_use` pause and same-session REJECTED/APPROVED resume paths.
 - Experiment 04 proved the complete governance chain: human REJECT -> zero provider executions; human APPROVE + Policy DENY -> zero provider executions; human APPROVE + Policy ALLOW -> exactly one provider execution.
 - Experiment 05 proved IAM identity-aware AgentCore Policy: caller A -> ALLOW -> exactly one provider execution; caller B -> default DENY -> zero provider executions.
+- Experiment 06 is active: correlate caller identity -> Gateway -> Policy -> provider using native AgentCore/CloudWatch observability where possible.
 - GitHub Pages is live through MkDocs Material at `https://mytestlab123.github.io/lab1_agent/`.
 - Reusable environment-specific AWS knowledge remains in private `mytestlab123/chatgpt-aws`.
 - The pre-existing Terraform/OIDC state bucket, deployment role, and SSM drift-proof parameter remain unchanged.
@@ -32,7 +33,7 @@ Useful resources with negligible idle cost are intentionally retained for reuse.
 Current reusable AgentCore path includes:
 
 - AgentCore Gateway with Policy ENFORCE;
-- restored Lambda-backed Gateway target used by Experiment 05;
+- Lambda-backed Gateway target used by Experiment 05;
 - AgentCore Policy Engine, the earlier Experiment 04 policy, and the exact Experiment 05 caller A permit;
 - harmless Lambda provider + small CloudWatch log footprint;
 - narrowly scoped GitHub OIDC IAM caller roles for the identity proof;
@@ -50,10 +51,12 @@ Cost rule: retain effectively idle/usage-priced resources when expected cost rem
 
 ## Active Work
 
-- Issue #21: final documentation/PR closeout for Experiment 05.
+- Issue #23: Experiment 06 end-to-end observability and trace correlation.
+- Branch: `issue-23-observability-trace`.
 
 ## Next Action
 
-1. Merge Experiment 05 evidence/docs and close Issue #21.
-2. Reuse the retained identity-aware Gateway/Policy/provider path for end-to-end observability.
-3. Next recommended experiment: correlate one request across caller identity -> Gateway -> Policy -> provider logs/traces.
+1. Inspect current native Gateway/Policy observability state and enable only what is required.
+2. Execute one ALLOW and one DENY request with unique correlation IDs.
+3. Correlate identity, Gateway, Policy decision and provider evidence.
+4. Publish Experiment 06 learning and close through one reviewed PR.
