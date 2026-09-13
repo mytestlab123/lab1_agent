@@ -1,22 +1,17 @@
 # Learning Path
 
-The lab learns one bounded capability at a time.
+## First, operate an existing Harness
 
-## Completed
+Use the [three operator examples](harness-examples.md):
 
-1. AWS and GitHub authentication foundations.
-2. Repeatable infrastructure deployment and drift verification.
-3. Managed AgentCore Runtime invocation.
-4. Gateway tool exposure and deterministic Policy ALLOW/DENY enforcement.
-5. AgentCore Harness human approval: real typed pause plus reject/approve same-session resume.
-6. Integrated governance: approval + Gateway + Policy with provider-side proof for REJECT, DENY and ALLOW.
-7. Identity-aware Policy: two authenticated IAM callers against the same Gateway/tool.
-8. Native observability correlation: principal, Gateway request/trace, Policy decision and provider execution evidence.
-9. Full-chain auditable approval: typed human decision -> IAM caller -> Gateway -> Policy -> provider evidence.
+1. **Explain** a pasted finding and recognize that model prose is not live AWS verification.
+2. **Read** one actual AWS setting through Harness -> Gateway -> Policy -> Lambda -> SSM.
+3. **Pause/resume** a typed approval simulation without giving the agent remediation capability.
 
-## Next
+[Verified test matrix](harness-examples-results.md) separates service/CLI evidence from untested Console clicks.
 
-10. Compare the fully proven AgentCore governance chain with SecCop and choose one practical adoption milestone.
-11. Add another AgentCore service only when a concrete SecCop or governance question requires it.
+## Then understand the earlier building blocks
 
-The detailed implementation roadmap remains in `ROADMAP.md` at the repository root.
+The earlier labs cover AWS/GitHub authentication, repeatable IaC, Runtime hosting, Gateway tools, deterministic Policy, identity-specific permits, provider-side execution evidence and native observability. Their detailed sources and scope are in the experiment folders and linked learning pages.
+
+Do not build another GUI or add another service just to complete a checklist. First decide whether Console/terminal operation meets the operator's need. Durable jobs, authenticated single-use business approvals and multi-user access remain separate product requirements.

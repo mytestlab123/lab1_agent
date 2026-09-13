@@ -1,36 +1,23 @@
 # AWS and AgentCore Hands-on Lab
 
-Public learning notes from small, verified AWS and Amazon Bedrock AgentCore experiments.
+Public learning notes from small AWS and Amazon Bedrock AgentCore experiments.
 
-## Current status
+## Start here: use AgentCore without a product GUI
 
-- MkDocs Material build: **PASS**
-- GitHub Pages deployment: **LIVE**
-- Experiment 01 — AgentCore Runtime: **PASS**
-- Experiment 02 — Gateway + Policy ALLOW/DENY: **PASS**
-- Experiment 03 — Harness human approval: **PASS**
-- Experiment 04 — integrated approval + Gateway + Policy: **PASS**
-- Experiment 05 — IAM identity-aware Policy: **PASS**
-- Experiment 06 — native observability correlation: **PASS**
-- Experiment 07 — full-chain auditable human approval: **PASS**
+[Three deployed Harness examples: prompts and Console/CLI steps](harness-examples.md)
 
-## Final governance matrix
+Try **lab1_demo_reader** first for a real AWS read, **lab1_demo_explainer** for pasted findings, and **lab1_demo_approval** for typed approval practice without remediation.
 
-| Human | Policy | Provider |
-|---|---|---:|
-| REJECT | not reached | 0 |
-| APPROVE | DENY | 0 |
-| APPROVE | ALLOW | exactly 1 |
+[Actual test results](harness-examples-results.md): all three API/terminal cases PASS; authenticated Console GUI is explicitly NOT_TESTED.
 
-Experiment 07 combines the controls proven in earlier milestones:
+## Earlier learning
 
-- real typed Harness `request_approval` pause/resume;
-- authenticated GitHub OIDC IAM principal;
-- AgentCore Gateway tool routing;
-- deterministic AgentCore Policy ENFORCE;
-- provider-side execution marker;
-- native Gateway/CloudWatch audit correlation.
+- [Runtime](runtime.md): direct-code deployment and IAM/SigV4.
+- [Gateway and Policy](gateway-policy.md): deterministic ALLOW/DENY.
+- [Harness approval](harness-approval.md): typed pause/resume.
+- [Integrated governance](integrated-governance.md): approval and Policy are separate gates.
+- [Identity-aware Policy](identity-aware-policy.md): authenticated caller A/B outcomes.
+- [Observability](observability-trace.md): request, principal, Policy and provider evidence.
+- [Auditable approval](auditable-approval.md): correlated controlled lab flow.
 
-The central lesson is that **human approval, authentication, authorization, and execution are separate facts**. Approval does not override Cedar Policy.
-
-See `auditable-approval.md` for the complete Experiment 07 result. Earlier pages document each control separately.
+Historical PASS labels describe the bounded experiment evidence, not universal production readiness. See each experiment's scope and source notes. The operator approval example is a simulation, not a durable human authorization system.

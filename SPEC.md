@@ -1,38 +1,41 @@
 # Specification
 
-Status: ACTIVE
+Status: IMPLEMENTED / SERVICE AND TERMINAL TESTS PASS
 Context: PERSONAL
 Environment: LAB
 Issue: #28
+PR: #29
+GUI verification: NOT_TESTED
 
-## Objective
+## Objective delivered
 
-Create and retain three useful AgentCore Harness examples that Amit can test without building a product GUI:
+Three retained AgentCore Harness examples in ap-southeast-1:
 
-1. Pasted finding explainer, no effective tools.
-2. One exact live read of the existing lab SSM parameter through a dedicated Gateway/Policy/Lambda path.
-3. Approval practice using a typed inline-function pause and same-session APPROVED/REJECTED resume. This is a simulation, not live remediation.
+1. lab1_demo_explainer: pasted finding, no effective tools, NOT LIVE VERIFIED output.
+2. lab1_demo_reader: one exact existing lab SSM String read through a dedicated Gateway/Policy/Lambda path.
+3. lab1_demo_approval: DEMO_ONLY typed inline-function pause and same-session reject/approve simulation. No remediation tool or real human-identity claim.
 
-## Authorized scope
+## Verified acceptance
 
-- `mytestlab123/lab1_agent` owns code, tests, documentation and PR.
-- PERSONAL/LAB `ap-southeast-1` only; fresh STS must match the documented lab identity.
-- Minimal three Harness resources plus dedicated narrowly scoped IAM, Gateway/Policy, Lambda and seven-day logs as needed.
-- Existing SSM drift-demo parameter is read-only. SecCop and all earlier lab resources remain unchanged.
-- Versioned CloudFormation/configuration is desired state. AWS Core may bootstrap this exact bounded stack; GitHub/OIDC performs independent terminal tests without static credentials.
-- Retain useful idle/usage-priced resources. No EC2, NAT, load balancer, database, public application server or provisioned capacity.
-- Explicit token, iteration, invocation timeout and idle-session limits; no scheduled traffic.
+- One versioned CloudFormation stack reached CREATE_COMPLETE; all three Harnesses reached READY with the intended persisted model/tools/memory/limits.
+- Real AWS Core and SDK invocations, independent unchanged SSM value/version, and provider-side read logs.
+- AWS CLI GetHarness for all three; native AgentCore CLI complete explainer/reader and typed approval interrupt.
+- SDK terminal helper completed both explicit simulation decisions to end_turn with matching toolUseId and unchanged session.
+- 12 offline fail-closed tests; forbidden write/shell prompts made no tool calls.
+- Full terminal test run 34768782767 PASS. Detailed evidence and versions: experiments/08-operator-harness-examples/RESULTS.md.
 
-## Acceptance
+## GUI limitation
 
-- Verify intended model, tools, IAM, memory and limits with GetHarness after READY.
-- Live invocation of all three examples with saved public-safe results.
-- Checker result matches independent SSM GetParameter, with unchanged value/version.
-- Approval practice produces exactly one expected typed tool call, validates input/toolUseId and resumes the same session to end_turn for both decisions. No mutation tool exists. Test decisions are labeled simulated.
-- AWS CLI control-plane and terminal streaming/approval tests run through GitHub OIDC. Report native AgentCore CLI separately if not exercised.
-- Provide current AWS Console/Inspector instructions. GUI testing is PASS only if an authenticated graphical interaction actually ran; otherwise document it as NOT_TESTED, not assumed.
-- Publish prompts, expected responses, CLI commands, GUI steps, sources, costs and limitations through MkDocs/GitHub Pages.
+No authenticated Console browser is connected. Console Playground steps and route are documented from an AWS sample, but clicks and inline-result controls are NOT_TESTED. Full validated decision/resume is available through the terminal helper. Do not relabel this limitation as a browser PASS.
 
-## Not in scope
+## Scope preserved
 
-No audit-correlation adoption change, SecCop write, remediation/reset, generic AWS tool, customer data, new scanner or dashboard. Do not claim this example suite replaces SecCop's durable jobs, single-use approval binding or production identity controls.
+Only lab1_agent code/docs and dedicated personal-lab resources. SecCop remains read-only and untouched. Existing SSM parameter is read-only. No static AWS credentials, arbitrary resource selector, remediation/reset, EC2/NAT/database/public app server or scheduled workload.
+
+## Retention and limits
+
+Retain useful usage-priced resources. Each Harness: 3 iterations, 1,024 output tokens, 90-second invocation timeout, 300-second idle timeout, 1,800-second lifetime, Memory disabled. Reader Lambda: 128 MB, 15 seconds, 7-day log retention. Limits are not a monthly billing cap.
+
+## Next
+
+Publish/review this cohesive PR, verify Pages, and let Amit exercise the three already-deployed Console examples. Do not implement the declined audit-correlation adoption proposal or modify SecCop.
