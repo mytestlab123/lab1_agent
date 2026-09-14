@@ -80,7 +80,7 @@ Section name in both:
 
 Operational rule: treat a connector/platform safety block as a distinct failure class. Re-read the exact repo/branch/PR/target/SHA, keep scope and safeguards unchanged, retry the identical bounded action at most once, then stop connector retries and report `BLOCKED_CONNECTOR_SAFETY` if blocked again. Do not widen permissions, weaken safeguards, change repo/branch, create a bypass handoff, or switch model/thinking effort merely to get past the gate.
 
-`CHATGPT.md` in this repository contains the local reusable version of that gate.
+The root `CHATGPT.md` in this repository does **not** yet contain that local section: the exact connector mutation was blocked twice and was intentionally not bypassed. Until a later authorized local/Codex sync is completed, use the canonical and template sources above as the authoritative safety-gate text.
 
 ## What a new chat should do
 
