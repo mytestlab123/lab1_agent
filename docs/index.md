@@ -4,11 +4,13 @@ Public learning notes from small AWS and Amazon Bedrock AgentCore experiments.
 
 ## Start here: use AgentCore without a product GUI
 
+[Cross-session ChatGPT/Codex handoff](HARNESS_CHATGPT_HANDOFF.md) — quickest entry point for another chat.
+
 [Three deployed Harness examples: prompts and Console/CLI steps](harness-examples.md)
 
 Try **lab1_demo_reader** first for a real AWS read, **lab1_demo_explainer** for pasted findings, and **lab1_demo_approval** for typed approval practice without remediation.
 
-[Actual test results](harness-examples-results.md): all three API/terminal cases PASS; authenticated Console GUI is explicitly NOT_TESTED.
+[Actual test results](harness-examples-results.md): API/terminal cases PASS; Amit later reported the remaining manual Console/operator tests PASS on 2026-09-14 SGT. The docs preserve the distinction between recorded automated evidence and user-reported manual verification.
 
 ## Earlier learning
 
