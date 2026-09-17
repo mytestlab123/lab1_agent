@@ -1,11 +1,13 @@
 # AGENTS.md
 
-## Read Order
+## Bootstrap / Recovery Order
+
+Use this order for cold start, recovery, materially changed governing context, or stale/incomplete/contradictory state. For warm continuation, use the named Issue/PR, latest relevant authorized delta, and current HEAD; do not reread the full context set on every handoff.
 
 1. `AGENTS.md`
 2. `CONTEXT.md`
 3. `INIT.md` only when repository initialization is incomplete
-4. `CHATGPT.md` for ChatGPT/Codex/GitHub collaboration
+4. `CHATGPT.md` when ChatGPT/Codex/GitHub collaboration or connector-safety rules matter
 5. `docs/CHATGPT_AWS_BOOTSTRAP.md` when AWS, AWS Core/MCP, GitHub OIDC, or cross-session AWS knowledge is relevant
 6. `ENV.md` when runtime, cloud, host, or tool facts matter
 7. `SPEC.md` before implementation, mutation, deployment, cleanup, or trusted-contract changes
@@ -21,6 +23,7 @@
 - When the current objective is known, short continuation such as `go`, `g`, `.`, `Y`, or `yes` means execute/continue it within existing authority unless Amit explicitly selected plan/review/discussion mode.
 - Before cross-repo mutation, apply the repository-binding guard in `CHATGPT.md`.
 - For AWS work in a new ChatGPT session, use the shared bootstrap and re-verify STS caller identity; Git carries knowledge, not authentication.
+- A previously safety-blocked connector write is not retried merely because a new governance milestone starts; use the owning historical record and current Connector Safety Gate.
 
 ## Global Guidance
 
